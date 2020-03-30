@@ -12,9 +12,19 @@ MigemoをGo言語で実装したものです。
 ## 使い方
 
 ```
-> go run main.go
-> migemoKensaku
-(migemo|みげも|ミゲモ|ｍｉｇｅｍｏ|ﾐｹﾞﾓ)(Kensaku|けんさく|ケンサク|建策|憲[作冊]|検索|献策|研削|羂索|Ｋｅｎｓａｋｕ|ｹﾝｻｸ)
+> go run main.go -h
+Usage of C:\..\main.exe:
+  -d string
+        Use a file <dict> for dictionary. (default "migemo-compact-dict")
+  -e    Use emacs style regexp.
+  -n    Don't use newline match.
+  -q    Show no message except results.
+  -v    Use vim style regexp.
+  -w string
+        Expand a <word> and soon exit.
+exit status 2
+> go run main.go -w kensaku
+(kensaku|けんさく|ケンサク|建策|憲[作冊]|検索|献策|研削|羂索|ｋｅｎｓａｋｕ|ｹﾝｻｸ)
 ```
 
 ## ライセンス

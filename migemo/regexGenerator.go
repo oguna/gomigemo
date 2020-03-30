@@ -9,14 +9,29 @@ type RegexNode struct {
 }
 
 type RegexGenerator struct {
+	operator RegexOperator;
+	root *RegexNode;
+	escapeCharacters map[uint16]struct{};
+}
+
+type RegexOperator struct {
 	or []uint16;
 	beginGroup []uint16;
 	endGroup []uint16;
 	beginClass []uint16;
 	endClass []uint16;
 	newline []uint16;
-	root *RegexNode;
-	escapeCharacters map[uint16]struct{};
+}
+
+func NewRegexOperator(or string, beginGroup string, endGroup string, beginClass string, endClass string, newline string) *RegexOperator {
+	return &RegexOperator {
+		or: utf16.Encode([]rune(or)),
+		beginGroup: utf16.Encode([]rune(beginGroup)),
+		endGroup: utf16.Encode([]rune(endGroup)),
+		beginClass: utf16.Encode([]rune(beginClass)),
+		endClass: utf16.Encode([]rune(endClass)),
+		newline: utf16.Encode([]rune(newline)),
+	}
 }
 
 func NewRegexNode(code uint16) *RegexNode {
@@ -27,7 +42,7 @@ func NewRegexNode(code uint16) *RegexNode {
 	}
 }
 
-func NewRegexGenerator() *RegexGenerator {
+func NewRegexGenerator(operator RegexOperator) *RegexGenerator {
 	const ESCAPE = "\\.[]{}()*+-?^$|"
 	var escapeCharacters = make(map[uint16]struct{})
 	for _, r := range ESCAPE {
@@ -35,12 +50,8 @@ func NewRegexGenerator() *RegexGenerator {
 		escapeCharacters[c] = struct{}{}
 	}
 	return &RegexGenerator {
-		or: utf16.Encode([]rune("|")),
-		beginGroup: utf16.Encode([]rune("(")),
-		endGroup: utf16.Encode([]rune(")")),
-		beginClass: utf16.Encode([]rune("[")),
-		endClass: utf16.Encode([]rune("]")),
-		newline: utf16.Encode([]rune("")),
+		root: nil,
+		operator: operator,
 		escapeCharacters: escapeCharacters,
 	}
 }
@@ -111,12 +122,12 @@ func (this *RegexGenerator) generateStub(node *RegexNode) []uint16 {
 	var nochild = brother - haschild;
 
 	if (brother > 1 && haschild > 0) {
-		buf = append(buf, this.beginGroup...)
+		buf = append(buf, this.operator.beginGroup...)
 	}
 
 	if (nochild > 0) {
 		if (nochild > 1) {
-			buf = append(buf, this.beginClass...)
+			buf = append(buf, this.operator.beginClass...)
 		}
 		for tmp := node; tmp != nil; tmp = tmp.next {
 			if (tmp.child != nil) {
@@ -129,13 +140,13 @@ func (this *RegexGenerator) generateStub(node *RegexNode) []uint16 {
 			buf = append(buf, tmp.code);
 		}
 		if (nochild > 1) {
-			buf = append(buf, this.endClass...);
+			buf = append(buf, this.operator.endClass...);
 		}
 	}
 
 	if (haschild > 0) {
 		if (nochild > 0) {
-			buf = append(buf, this.or...);
+			buf = append(buf, this.operator.or...);
 		}
 		var tmp *RegexNode = nil;
 		for tmp = node; tmp.child == nil; tmp = tmp.next {
@@ -146,8 +157,8 @@ func (this *RegexGenerator) generateStub(node *RegexNode) []uint16 {
 				buf = append(buf, 92);
 			}
 			buf = append(buf, tmp.code);
-			if this.newline != nil {
-				buf = append(buf, this.newline...);
+			if this.operator.newline != nil { // TODO: always true
+				buf = append(buf, this.operator.newline...);
 			}
 			buf = append(buf, this.generateStub(tmp.child)...);
 			for tmp = tmp.next; tmp != nil && tmp.child == nil; tmp = tmp.next {
@@ -156,12 +167,12 @@ func (this *RegexGenerator) generateStub(node *RegexNode) []uint16 {
 				break;
 			}
 			if (haschild > 1) {
-				buf = append(buf, this.or...);
+				buf = append(buf, this.operator.or...);
 			}
 		}
 	}
 	if (brother > 1 && haschild > 0) {
-		buf = append(buf, this.endGroup...);
+		buf = append(buf, this.operator.endGroup...);
 	}
 	return buf;
 }

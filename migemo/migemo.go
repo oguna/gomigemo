@@ -4,9 +4,9 @@ import "regexp"
 import "strings"
 import "unicode/utf16"
 
-func QueryAWord(word string, dict *CompactDictionary) string {
+func QueryAWord(word string, dict *CompactDictionary, operator *RegexOperator) string {
     var utf16word = utf16.Encode([]rune(word))
-    var generator = NewRegexGenerator()
+    var generator = NewRegexGenerator(*operator)
     generator.Add(utf16word)
     var lower = utf16.Encode([]rune(strings.ToLower(word)))
     if dict != nil {
@@ -36,14 +36,14 @@ func QueryAWord(word string, dict *CompactDictionary) string {
     return string([]rune(utf16.Decode(generator.Generate())))
 }
 
-func Query(word string, dict *CompactDictionary) string {
+func Query(word string, dict *CompactDictionary, operator *RegexOperator) string {
     if len(word) == 0 {
         return ""
     }
     words := parseQuery(word)
     results := make([]string, len(words))
     for i, w := range words {
-        results[i] = QueryAWord(w, dict)
+        results[i] = QueryAWord(w, dict, operator)
     }
     return strings.Join(results, "")
 }
