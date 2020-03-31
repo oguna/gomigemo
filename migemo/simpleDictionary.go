@@ -1,18 +1,18 @@
 package migemo
 
 import (
-	"strings"
 	"sort"
+	"strings"
 )
 
 type SimpleDictionary struct {
-	keys []string;
-	values []string;
+	keys   []string
+	values []string
 }
 
 type KeyValuePair struct {
-	key string;
-	value string;
+	key   string
+	value string
 }
 
 func BuildSimpleDictionary(file string) *SimpleDictionary {
@@ -20,12 +20,12 @@ func BuildSimpleDictionary(file string) *SimpleDictionary {
 	var keyValuePairs = []KeyValuePair{}
 	for i := 0; i < len(lines); i++ {
 		var line = lines[i]
-		if (!strings.HasPrefix(line, ";") && len(line) != 0) {
-			var semicolonPos = strings.Index(line, "\t");
+		if !strings.HasPrefix(line, ";") && len(line) != 0 {
+			var semicolonPos = strings.Index(line, "\t")
 			var key = line[:semicolonPos]
-			var value = line[:semicolonPos + 1]
-			keyValuePairs = append(keyValuePairs, KeyValuePair {
-				key: key,
+			var value = line[:semicolonPos+1]
+			keyValuePairs = append(keyValuePairs, KeyValuePair{
+				key:   key,
 				value: value,
 			})
 		}
@@ -34,7 +34,7 @@ func BuildSimpleDictionary(file string) *SimpleDictionary {
 		var left = keyValuePairs[i].key
 		var right = keyValuePairs[j].key
 		var minlen = len(left)
-		if (minlen > len(right)) {
+		if minlen > len(right) {
 			minlen = len(right)
 		}
 		for k := 0; k < minlen; k++ {
@@ -56,48 +56,48 @@ func BuildSimpleDictionary(file string) *SimpleDictionary {
 	for i, v := range keyValuePairs {
 		values[i] = v.value
 	}
-	return &SimpleDictionary {
-		keys: keys,
+	return &SimpleDictionary{
+		keys:   keys,
 		values: values,
 	}
 }
 
 func (this *SimpleDictionary) PredictiveSearch(hiragana string) []string {
 	if len(hiragana) == 0 {
-		return []string {}
+		return []string{}
 	}
 	var hiraganaRune = []rune(hiragana)
-	var stop = string(append(hiraganaRune[:len(hiragana) - 1], hiraganaRune[len(hiragana) - 1]));
-	var startPos = binarySearchString(this.keys, 0, len(this.keys), hiragana);
-	if (startPos < 0) {
-		startPos = -(startPos + 1);
+	var stop = string(append(hiraganaRune[:len(hiragana)-1], hiraganaRune[len(hiragana)-1]))
+	var startPos = binarySearchString(this.keys, 0, len(this.keys), hiragana)
+	if startPos < 0 {
+		startPos = -(startPos + 1)
 	}
-	var endPos = binarySearchString(this.keys, 0, len(this.keys), stop);
-	if (endPos < 0) {
-		endPos = -(endPos + 1);
+	var endPos = binarySearchString(this.keys, 0, len(this.keys), stop)
+	if endPos < 0 {
+		endPos = -(endPos + 1)
 	}
-	var result = []string {};
+	var result = []string{}
 	for i := startPos; i < endPos; i++ {
 		for _, j := range strings.Split(this.values[i], "\t") {
-			result = append(result, j);
+			result = append(result, j)
 		}
 	}
-	return result;
+	return result
 }
 
 func binarySearchString(a []string, fromIndex int, toIndex int, key string) int {
-	var low = fromIndex;
-	var high = toIndex - 1;
-	for (low <= high) {
-		var mid = (low + high) >> 1;
-		var midVal = a[mid];
-		if (midVal < key) {
-			low = mid + 1;
-		} else if (midVal > key) {
-			high = mid - 1;
+	var low = fromIndex
+	var high = toIndex - 1
+	for low <= high {
+		var mid = (low + high) >> 1
+		var midVal = a[mid]
+		if midVal < key {
+			low = mid + 1
+		} else if midVal > key {
+			high = mid - 1
 		} else {
-			return mid;
+			return mid
 		}
 	}
-	return -(low + 1);
+	return -(low + 1)
 }

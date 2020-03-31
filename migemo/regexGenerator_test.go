@@ -1,13 +1,15 @@
-package migemo
+package migemo_test
 
 import (
 	"testing"
 	"unicode/utf16"
+
 	"github.com/oguna/gomigemo/migemo"
 )
 
 func TestRegexGenerator_1(t *testing.T) {
-	generator := migemo.NewRegexGenerator()
+	regex_operator := migemo.NewRegexOperator("|", "(", ")", "[", "]", "")
+	generator := migemo.NewRegexGenerator(*regex_operator)
 	generator.Add(utf16.Encode([]rune("bad")))
 	generator.Add(utf16.Encode([]rune("dad")))
 	result := string(utf16.Decode(generator.Generate()))
@@ -18,7 +20,8 @@ func TestRegexGenerator_1(t *testing.T) {
 }
 
 func TestRegexGenerator_2(t *testing.T) {
-	generator := migemo.NewRegexGenerator()
+	regex_operator := migemo.NewRegexOperator("|", "(", ")", "[", "]", "")
+	generator := migemo.NewRegexGenerator(*regex_operator)
 	generator.Add(utf16.Encode([]rune("bad")))
 	generator.Add(utf16.Encode([]rune("bat")))
 	result := string(utf16.Decode(generator.Generate()))
@@ -29,7 +32,8 @@ func TestRegexGenerator_2(t *testing.T) {
 }
 
 func TestRegexGenerator_3(t *testing.T) {
-	generator := migemo.NewRegexGenerator()
+	regex_operator := migemo.NewRegexOperator("|", "(", ")", "[", "]", "")
+	generator := migemo.NewRegexGenerator(*regex_operator)
 	generator.Add(utf16.Encode([]rune("a")))
 	generator.Add(utf16.Encode([]rune("b")))
 	generator.Add(utf16.Encode([]rune("a")))
@@ -41,7 +45,8 @@ func TestRegexGenerator_3(t *testing.T) {
 }
 
 func TestRegexGenerator_4(t *testing.T) {
-	generator := migemo.NewRegexGenerator()
+	regex_operator := migemo.NewRegexOperator("|", "(", ")", "[", "]", "")
+	generator := migemo.NewRegexGenerator(*regex_operator)
 	generator.Add(utf16.Encode([]rune("a.b")))
 	result := string(utf16.Decode(generator.Generate()))
 	expect := "a\\.b"
