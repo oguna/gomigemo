@@ -21,15 +21,13 @@ builds:
       - 386
       - amd64
 archives:
-  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     replacements:
       darwin: mac
       linux: linux
       windows: windows
-      386: 32-bit
-      amd64: 64-bit
-    format_overrides:
-      - goos: windows
-        format: zip
+      386: 32bit
+      amd64: 64bit
+    format: zip
 release:
   prerelease: auto
