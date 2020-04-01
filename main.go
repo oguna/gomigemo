@@ -1,12 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"bufio"
-	"io/ioutil"
 	"flag"
+	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/oguna/gomigemo/migemo"
+)
+
+var (
+	Version  = "unset"
+	Revision = "unset"
 )
 
 func main() {
@@ -19,15 +25,15 @@ func main() {
 
 	flag.Parse()
 
-	var regex_operator *migemo.RegexOperator;
-	if (*v) {
-		if (*n) {
+	var regex_operator *migemo.RegexOperator
+	if *v {
+		if *n {
 			regex_operator = migemo.NewRegexOperator("\\|", "\\%(", "\\)", "[", "]", "")
 		} else {
 			regex_operator = migemo.NewRegexOperator("\\|", "\\%(", "\\)", "[", "]", "\\_s*")
 		}
-	} else if (*e) {
-		if (*n) {
+	} else if *e {
+		if *n {
 			regex_operator = migemo.NewRegexOperator("\\|", "\\(", "\\)", "[", "]", "")
 		} else {
 			regex_operator = migemo.NewRegexOperator("\\|", "\\(", "\\)", "[", "]", "\\s-*")
@@ -44,9 +50,9 @@ func main() {
 	buf, err := ioutil.ReadAll(f)
 	dict := migemo.NewCompactDictionary(buf)
 
-	if (len(*w) == 0) {
+	if len(*w) == 0 {
 		stdin := bufio.NewScanner(os.Stdin)
-		if (!*q) {
+		if !*q {
 			fmt.Print("QUERY: ")
 		}
 		for stdin.Scan() {
@@ -55,11 +61,11 @@ func main() {
 				break
 			}
 			r := migemo.Query(s, dict, regex_operator)
-			if (!*q) {
-				r = "PATTERN: " + r;
+			if !*q {
+				r = "PATTERN: " + r
 			}
 			fmt.Println(r)
-			if (!*q) {
+			if !*q {
 				fmt.Print("QUERY: ")
 			}
 		}
