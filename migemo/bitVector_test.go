@@ -93,3 +93,17 @@ func TestSelect(t *testing.T) {
 		}
 	}
 }
+
+func TestNextClearBit(t *testing.T) {
+	size := uint(100)
+	bits := make([]bool, size)
+	for i := uint(0); i < size; i++ {
+		bits[i] = true // rand.Intn(2) == 1
+	}
+	bits[50] = false
+	vec := bits_to_vector(bits)
+	bv := migemo.NewBitVector(vec, uint32(size))
+	if bv.NextClearBit(uint32(34)) != 50 {
+		t.Error()
+	}
+}

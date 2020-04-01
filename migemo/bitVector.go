@@ -1,6 +1,9 @@
 package migemo
 
-import "math/bits"
+import (
+	"math"
+	"math/bits"
+)
 
 type BitVector struct {
 	words      []uint32
@@ -132,28 +135,22 @@ func (this *BitVector) lowerBoundBinarySearchSB(key uint32, fromIndex uint32, to
 }
 
 func (this *BitVector) NextClearBit(fromIndex uint32) uint32 {
-	for fromIndex < this.sizeInBits && this.Get(fromIndex) {
-		fromIndex = fromIndex + 1
+	var u = int(fromIndex >> 5)
+	if u >= len(this.words) {
+		return fromIndex
 	}
-	if fromIndex > this.sizeInBits {
-		return this.sizeInBits + 1
-	}
-	return fromIndex
-	/*
-		var u = int(fromIndex >> 5);
-		var word uint32 = ^this.words[u] & (0xffffffff  << fromIndex); // TODO
-		for true {
-			if word != 0 {
-				return (u * 32 + bits.TrailingZeros32(word));
-			}
-			u = u + 1
-			if u == len(this.words) {
-				return -1;
-			}
-			word = ^this.words[u];
+	var word uint32 = ^this.words[u] & uint32(^uint32(0)<<(fromIndex&31))
+	for true {
+		if word != 0 {
+			return uint32(u*32 + bits.TrailingZeros32(word))
 		}
-		return -1;
-	*/
+		u = u + 1
+		if u == len(this.words) {
+			return uint32(len(this.words)) * 32
+		}
+		word = ^this.words[u]
+	}
+	return math.MaxUint32 // Unreachable here
 }
 
 func (this *BitVector) Size() int {
