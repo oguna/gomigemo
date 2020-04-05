@@ -1,7 +1,6 @@
 # gomigemo
 
-MigemoをGo言語で実装したものです。
-辞書ファイルの構造を効率化し、メモリ使用量の削減を図りました。
+ローマ字のまま日本語をインクリメンタル検索するためのツールであるMigemoを、Go言語で実装したものです。
 
 ## C/Migemoとの比較
 
@@ -29,9 +28,15 @@ MigemoをGo言語で実装したものです。
 
 ## 使い方
 
+gomigemoの利用には、辞書ファイルが必要です。
+[migemo-compact-dict-latest](https://github.com/oguna/migemo-compact-dict-latest)
+から `migemo-compact-dict` をダウンロードし、
+作業フォルダ（シェルのカレントディレクトリ）に配置してください。
+なお、`migemo-compact-dict` のライセンスはGPLv3のため、再配布する際はご注意ください。
+
 ```
 > ./gomigemo.exe -h
-Usage of C:\...\main.exe:
+Usage of C:\...\gomigemo.exe:
   -d string
         Use a file <dict> for dictionary. (default "migemo-compact-dict")
   -e    Use emacs style regexp.
@@ -47,6 +52,4 @@ exit status 2
 
 ## ライセンス
 
-`main.go`ファイル及び`migemo`ディレクトリは、**MIT License**の下で配布しています。
-
-`migemo-compact-dict`ファイルは、SKK辞書のライセンスを継承し、**GPL**の下で配布しています。
+**MIT License**の下で配布しています。
