@@ -25,12 +25,12 @@ func (this *LoudsTrie) GetKey(index uint32) []uint16 {
 }
 
 func (this *LoudsTrie) Parent(x uint32) uint32 {
-	return this.bitVector.Rank(this.bitVector.Select(x, true), false)
+	return uint32(this.bitVector.Rank(this.bitVector.Select(x, true), false))
 }
 
 func (this *LoudsTrie) FirstChild(x uint32) int {
 	y := this.bitVector.Select(x, false) + 1
-	if this.bitVector.Get(y) {
+	if this.bitVector.Get(uint32(y)) {
 		return int(this.bitVector.Rank(y, true)) + 1
 	} else {
 		return -1
@@ -44,8 +44,8 @@ func (this *LoudsTrie) Traverse(index uint32, c uint16) int {
 	}
 	var childStartBit = this.bitVector.Select(uint32(firstChild), true)
 	var childEndBit = this.bitVector.NextClearBit(childStartBit)
-	var childSize = uint32(childEndBit) - childStartBit
-	var result = binarySearchUint16(this.edges, uint32(firstChild), uint32(firstChild)+childSize, c)
+	var childSize = childEndBit - childStartBit
+	var result = binarySearchUint16(this.edges, uint32(firstChild), uint32(firstChild)+uint32(childSize), c)
 	if result >= 0 {
 		return result
 	} else {
@@ -75,7 +75,7 @@ func (this *LoudsTrie) Iterate(index int, f func(int)) {
 		return
 	}
 	var childPos = this.bitVector.Select(uint32(child), true)
-	for this.bitVector.Get(childPos) {
+	for this.bitVector.Get(uint32(childPos)) {
 		this.Iterate(child, f)
 		child++
 		childPos++

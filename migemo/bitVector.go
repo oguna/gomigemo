@@ -6,24 +6,24 @@ import (
 )
 
 type BitVector struct {
-	words      []uint32
+	words      []uint64
 	sizeInBits uint32
 	lb         []uint32
 	sb         []uint16
 }
 
-func NewBitVector(words []uint32, sizeInBits uint32) *BitVector {
-	if (sizeInBits+63)>>5 != uint32(len(words)) {
+func NewBitVector(words []uint64, sizeInBits uint32) *BitVector {
+	if (sizeInBits+63)/64 != uint32(len(words)) {
 		return nil
 	}
-	lb := make([]uint32, (sizeInBits+511)>>9)
+	lb := make([]uint32, (sizeInBits+511)/512)
 	sb := make([]uint16, len(lb)*8)
 	var sum = 0
 	var sumInLb = 0
 	for i := 0; i < len(sb); i++ {
 		var bc = 0
-		if i < len(words)>>1 {
-			bc = bits.OnesCount32(words[i*2]) + bits.OnesCount32(words[i*2+1])
+		if i < len(words) {
+			bc = bits.OnesCount64(words[i])
 		}
 		sb[i] = uint16(sumInLb)
 		sumInLb += bc
@@ -41,18 +41,18 @@ func NewBitVector(words []uint32, sizeInBits uint32) *BitVector {
 	}
 }
 
-func (this *BitVector) Rank(pos uint32, b bool) uint32 {
+func (this *BitVector) Rank(pos uint, b bool) uint {
 	/*if pos < 0 && this.sizeInBits <= pos {
 		return nil;
 	}*/
-	var count1 uint32 = uint32(this.sb[pos>>6]) + this.lb[pos>>9]
-	var posInDWord uint32 = pos & uint32(63)
-	if posInDWord >= 32 {
-		count1 += uint32(bits.OnesCount32(this.words[(pos>>5)&uint32(0xFFFFFFFE)]))
+	var count1 uint = uint(this.sb[pos/64]) + uint(this.lb[pos/512])
+	var word = this.words[pos/64]
+	var shiftSize = 64 - (pos & 63)
+	var mask uint64 = 0
+	if shiftSize < 64 {
+		mask = uint64(0xFFFFFFFFFFFFFFFF) >> shiftSize
 	}
-	posInWord := pos & 31
-	var mask uint32 = 0x7FFFFFFF >> (31 - posInWord)
-	count1 += uint32(bits.OnesCount32(this.words[pos>>5] & mask))
+	count1 += uint(bits.OnesCount64(word & mask))
 	if b {
 		return count1
 	} else {
@@ -60,7 +60,7 @@ func (this *BitVector) Rank(pos uint32, b bool) uint32 {
 	}
 }
 
-func (this *BitVector) Select(count uint32, b bool) uint32 {
+func (this *BitVector) Select(count uint32, b bool) uint {
 	var lbIndex uint32 = this.lowerBoundBinarySearchLB(count, b) - 1
 	var countInLb uint32
 	var countInSb uint32
@@ -75,25 +75,45 @@ func (this *BitVector) Select(count uint32, b bool) uint32 {
 	} else {
 		countInSb = countInLb - (64*(sbIndex%8) - uint32(this.sb[sbIndex]))
 	}
-	var wordL = this.words[sbIndex*2]
-	var wordU = this.words[sbIndex*2+1]
+	var word = this.words[sbIndex]
 	if !b {
-		wordL = ^wordL
-		wordU = ^wordU
+		word = ^word
 	}
-	var lowerBitCount = uint32(bits.OnesCount32(wordL))
-	var i uint32 = 0
-	if countInSb > lowerBitCount {
-		wordL = wordU
-		countInSb -= lowerBitCount
+	return uint(sbIndex*64) + selectInWord(word, uint(countInSb)) - 1
+}
+
+func selectInWord(word uint64, count uint) uint {
+	var lower_bit_count = uint(bits.OnesCount32(uint32(word)))
+	var i uint = 0
+	if lower_bit_count < count {
+		word = word >> 32
+		count = count - lower_bit_count
 		i = 32
 	}
-	for countInSb > 0 {
-		countInSb = countInSb - (wordL & 1)
-		wordL = wordL >> 1
-		i++
+	var lower16bit_count = uint(bits.OnesCount16(uint16(word)))
+	if lower16bit_count < count {
+		word = word >> 16
+		count = count - lower16bit_count
+		i = i + 16
 	}
-	return sbIndex*64 + (i - 1)
+	var lower8bit_count = uint(bits.OnesCount8(uint8(word)))
+	if lower8bit_count < count {
+		word = word >> 8
+		count = count - lower8bit_count
+		i = i + 8
+	}
+	var lower4bit_count = uint(bits.OnesCount8(uint8(word) & 0b1111))
+	if lower4bit_count < count {
+		word = word >> 4
+		count = count - lower4bit_count
+		i = i + 4
+	}
+	for count > 0 {
+		count = count - uint(word&1)
+		word = word >> 1
+		i = i + 1
+	}
+	return i
 }
 
 func (this *BitVector) lowerBoundBinarySearchLB(key uint32, b bool) uint32 {
@@ -134,19 +154,19 @@ func (this *BitVector) lowerBoundBinarySearchSB(key uint32, fromIndex uint32, to
 	return high
 }
 
-func (this *BitVector) NextClearBit(fromIndex uint32) uint32 {
-	var u = int(fromIndex >> 5)
+func (this *BitVector) NextClearBit(fromIndex uint) uint {
+	var u = int(fromIndex / 64)
 	if u >= len(this.words) {
 		return fromIndex
 	}
-	var word uint32 = ^this.words[u] & uint32(^uint32(0)<<(fromIndex&31))
+	var word uint64 = ^this.words[u] & uint64(^uint64(0)<<(fromIndex&63))
 	for true {
 		if word != 0 {
-			return uint32(u*32 + bits.TrailingZeros32(word))
+			return uint(u*64) + uint(bits.TrailingZeros64(word))
 		}
 		u = u + 1
 		if u == len(this.words) {
-			return uint32(len(this.words)) * 32
+			return uint(len(this.words)) * 64
 		}
 		word = ^this.words[u]
 	}
@@ -163,5 +183,5 @@ func (this *BitVector) Get(pos uint32) bool {
 			return nil;
 		}
 	*/
-	return ((this.words[pos>>5] >> (pos & 31)) & 1) == 1
+	return ((this.words[pos>>6] >> (pos & 63)) & 1) == 1
 }

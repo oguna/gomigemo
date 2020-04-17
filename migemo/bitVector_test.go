@@ -7,11 +7,11 @@ import (
 	"github.com/oguna/gomigemo/migemo"
 )
 
-func bits_to_vector(bits []bool) []uint32 {
-	vec := make([]uint32, (len(bits)+63)>>5)
+func bits_to_vector(bits []bool) []uint64 {
+	vec := make([]uint64, (len(bits)+63)/64)
 	for i := 0; i < len(bits); i++ {
 		if bits[i] {
-			vec[i>>5] |= uint32(1) << (i & 31)
+			vec[i/64] |= uint64(1) << (i % 64)
 		}
 	}
 	return vec
@@ -37,14 +37,14 @@ func TestRank(t *testing.T) {
 	bv := migemo.NewBitVector(vec, uint32(size))
 	for i := uint(0); i < size; i++ {
 		expected := rank(bits, i, true)
-		actual := bv.Rank(uint32(i), true)
+		actual := bv.Rank(i, true)
 		if expected != uint(actual) {
 			t.Error("actual: ", actual, "\nexpected: ", expected, "\n")
 		}
 	}
 	for i := uint(0); i < size; i++ {
 		expected := rank(bits, i, false)
-		actual := bv.Rank(uint32(i), false)
+		actual := bv.Rank(i, false)
 		if expected != uint(actual) {
 			t.Error("actual: ", actual, "\nexpected: ", expected, "\n")
 		}
@@ -103,7 +103,7 @@ func TestNextClearBit(t *testing.T) {
 	bits[50] = false
 	vec := bits_to_vector(bits)
 	bv := migemo.NewBitVector(vec, uint32(size))
-	if bv.NextClearBit(uint32(34)) != 50 {
+	if bv.NextClearBit(34) != 50 {
 		t.Error()
 	}
 }

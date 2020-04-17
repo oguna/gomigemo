@@ -19,12 +19,10 @@ func NewCompactDictionary(buffer []uint8) *CompactDictionary {
 	valueTrie, offset := readTrie(buffer, offset, false)
 	var mappingBitVectorSize = binary.BigEndian.Uint32(buffer[offset:])
 	offset = offset + 4
-	var mappingBitVectorWords = make([]uint32, ((mappingBitVectorSize+63)/64)*2)
-	for i := 0; i < len(mappingBitVectorWords)>>1; i++ {
-		mappingBitVectorWords[i*2+1] = binary.BigEndian.Uint32(buffer[offset:])
-		offset = offset + 4
-		mappingBitVectorWords[i*2] = binary.BigEndian.Uint32(buffer[offset:])
-		offset = offset + 4
+	var mappingBitVectorWords = make([]uint64, (mappingBitVectorSize+63)/64)
+	for i := 0; i < len(mappingBitVectorWords); i++ {
+		mappingBitVectorWords[i] = binary.BigEndian.Uint64(buffer[offset:])
+		offset = offset + 8
 	}
 	mappingBitVector := NewBitVector(mappingBitVectorWords, mappingBitVectorSize)
 	var mappingSize = binary.BigEndian.Uint32(buffer[offset:])
@@ -62,12 +60,10 @@ func readTrie(buffer []uint8, offset int, compactHiragana bool) (*LoudsTrie, int
 	}
 	var keyTrieBitVectorSize = binary.BigEndian.Uint32(buffer[offset:])
 	offset = offset + 4
-	var keyTrieBitVectorWords = make([]uint32, (keyTrieBitVectorSize+63)/64*2)
-	for i := uint32(0); i < uint32(len(keyTrieBitVectorWords)>>1); i++ {
-		keyTrieBitVectorWords[i*2+1] = binary.BigEndian.Uint32(buffer[offset:])
-		offset = offset + 4
-		keyTrieBitVectorWords[i*2] = binary.BigEndian.Uint32(buffer[offset:])
-		offset = offset + 4
+	var keyTrieBitVectorWords = make([]uint64, (keyTrieBitVectorSize+63)/64)
+	for i := 0; i < len(keyTrieBitVectorWords); i++ {
+		keyTrieBitVectorWords[i] = binary.BigEndian.Uint64(buffer[offset:])
+		offset = offset + 8
 	}
 	return NewLoudsTrie(NewBitVector(keyTrieBitVectorWords, keyTrieBitVectorSize), keyTrieEdges), offset
 }
@@ -87,11 +83,11 @@ func (this *CompactDictionary) Search(key []uint16, f func([]uint16)) {
 	if keyIndex != -1 {
 		var valueStartPos = this.mappingBitVector.Select(uint32(keyIndex), false)
 		var valueEndPos = this.mappingBitVector.NextClearBit(valueStartPos + 1)
-		var size = uint32(valueEndPos) - uint32(valueStartPos) - uint32(1)
+		var size = uint(valueEndPos - valueStartPos - 1)
 		if size > 0 {
 			var offset = this.mappingBitVector.Rank(valueStartPos, false)
-			for i := uint32(0); i < size; i++ {
-				f(this.valueTrie.GetKey(this.mapping[valueStartPos-offset+i]))
+			for i := uint(0); i < size; i++ {
+				f(this.valueTrie.GetKey(this.mapping[valueStartPos-uint(offset)+i]))
 			}
 		}
 	}
@@ -101,11 +97,11 @@ func (this *CompactDictionary) PredictiveSearch(key []uint16, f func([]uint16)) 
 	var keyIndex = this.keyTrie.Get(key)
 	if keyIndex > 1 {
 		this.keyTrie.Iterate(keyIndex, func(i int) {
-			var valueStartPos uint32 = this.mappingBitVector.Select(uint32(i), false)
-			var valueEndPos uint32 = this.mappingBitVector.NextClearBit(valueStartPos + 1)
+			var valueStartPos uint = this.mappingBitVector.Select(uint32(i), false)
+			var valueEndPos uint = this.mappingBitVector.NextClearBit(valueStartPos + 1)
 			var size = valueEndPos - valueStartPos - 1
 			var offset = this.mappingBitVector.Rank(valueStartPos, false)
-			for j := uint32(0); j < size; j++ {
+			for j := uint(0); j < size; j++ {
 				f(this.valueTrie.GetKey(this.mapping[valueStartPos-offset+j]))
 			}
 		})
