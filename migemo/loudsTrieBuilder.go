@@ -112,75 +112,55 @@ func CompareUtf16String(a []uint16, b []uint16) int {
 }
 
 func BuildLoudsTrie(keys [][]uint16) (*LoudsTrie, []uint32, error) {
-	var memo = make([]uint32, len(keys))
-
 	for i := 0; i < len(keys)-1; i++ {
 		if CompareUtf16String(keys[i], keys[i+1]) >= 0 {
 			return nil, nil, errors.New("keys need be ordered")
 		}
 	}
-	for i := 0; i < len(memo); i++ {
-		memo[i] = 1
+	var nodes = make([]uint32, len(keys))
+	for i := 0; i < len(nodes); i++ {
+		nodes[i] = 1
 	}
-	var offset = 0
+	var cursor = 0
 	var currentNode uint32 = 1
 	var edges = []uint16{0x30, 0x30} // TODO: '0'で穴埋めを'\0'にするか、なくす
-	var childSizes = make([]uint32, 128)
+	var louds = NewBitList()
+	louds.Add(true)
 	for true {
 		var lastChar uint16 = 0
 		var lastParent uint32 = 0
 		var restKeys uint32 = 0
 		for i := 0; i < len(keys); i++ {
-			if memo[i] < 0 {
+			if len(keys[i]) < cursor {
 				continue
 			}
-			if len(keys[i]) <= offset {
-				memo[i] = -memo[i]
+			if len(keys[i]) == cursor {
+				louds.Add(false)
+				lastParent = nodes[i]
 				continue
 			}
-			var currentChar = keys[i][offset]
-			var currentParent = memo[i]
-			if lastChar != currentChar || lastParent != currentParent {
-				if uint32(len(childSizes)) <= memo[i] {
-					var tmp = make([]uint32, len(childSizes)*2)
-					copy(tmp, childSizes)
-					childSizes = tmp
-				}
-				childSizes[memo[i]]++
-				currentNode = currentNode + 1
+			var currentChar = keys[i][cursor]
+			var currentParent = nodes[i]
+			if lastParent != currentParent {
+				louds.Add(false)
+				louds.Add(true)
 				edges = append(edges, currentChar)
-				lastChar = currentChar
-				lastParent = currentParent
+				currentNode = currentNode + 1
+			} else if lastChar != currentChar {
+				louds.Add(true)
+				edges = append(edges, currentChar)
+				currentNode = currentNode + 1
 			}
-			memo[i] = currentNode
+			nodes[i] = currentNode
+			lastChar = currentChar
+			lastParent = currentParent
 			restKeys++
 		}
 		if restKeys == 0 {
 			break
 		}
-		offset++
+		cursor++
 	}
-
-	for i := 0; i < len(memo); i++ {
-		memo[i] = -memo[i]
-	}
-
-	var numOfChildren uint32 = 0
-	for i := uint32(1); i <= currentNode; i++ {
-		numOfChildren = numOfChildren + childSizes[i]
-	}
-	var numOfNodes = currentNode
-	var bitVectorWords = make([]uint64, (numOfChildren+uint32(numOfNodes)+63+1)>>6)
-	var bitVectorIndex uint32 = 1
-	bitVectorWords[0] = 1
-	for i := uint32(1); i <= currentNode; i++ {
-		bitVectorIndex++
-		var childSize = childSizes[i]
-		for j := uint32(0); j < childSize; j++ {
-			bitVectorWords[bitVectorIndex>>6] |= 1 << (bitVectorIndex & 63)
-			bitVectorIndex++
-		}
-	}
-	var bitVector = NewBitVector(bitVectorWords, bitVectorIndex)
-	return NewLoudsTrie(bitVector, edges), memo, nil
+	var bitVector = NewBitVector(louds.Words, uint32(louds.Size))
+	return NewLoudsTrie(bitVector, edges), nodes, nil
 }
