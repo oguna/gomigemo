@@ -123,7 +123,7 @@ func BuildLoudsTrie(keys [][]uint16) (*LoudsTrie, []uint32, error) {
 	}
 	var cursor = 0
 	var currentNode uint32 = 1
-	var edges = []uint16{0x30, 0x30} // TODO: '0'で穴埋めを'\0'にするか、なくす
+	var edges = []uint16{0x20, 0x20}
 	var louds = NewBitList()
 	louds.Add(true)
 	for true {
@@ -137,6 +137,7 @@ func BuildLoudsTrie(keys [][]uint16) (*LoudsTrie, []uint32, error) {
 			if len(keys[i]) == cursor {
 				louds.Add(false)
 				lastParent = nodes[i]
+				lastChar = 0
 				continue
 			}
 			var currentChar = keys[i][cursor]

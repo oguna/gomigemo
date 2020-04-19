@@ -1,6 +1,9 @@
 package migemo
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"os"
+)
 
 type CompactDictionary struct {
 	keyTrie          *LoudsTrie
@@ -78,6 +81,19 @@ func decode(c uint8) uint16 {
 	return 0
 }
 
+func encode(c uint16) uint8 {
+	if 0x20 <= c && c <= 0x7e {
+		return uint8(c)
+	}
+	if 0x3041 <= c && c <= 0x3096 {
+		return uint8(c - 0x3040 + 0xa0)
+	}
+	if 0x30fc == c {
+		return uint8(c - 0x3040 + 0xa0)
+	}
+	return 0
+}
+
 func (this *CompactDictionary) Search(key []uint16, f func([]uint16)) {
 	var keyIndex = this.keyTrie.Get(key)
 	if keyIndex != -1 {
@@ -105,5 +121,53 @@ func (this *CompactDictionary) PredictiveSearch(key []uint16, f func([]uint16)) 
 				f(this.valueTrie.GetKey(this.mapping[valueStartPos-offset+j]))
 			}
 		})
+	}
+}
+
+func (this *CompactDictionary) Save(fp *os.File) {
+	buffer := make([]byte, 8)
+	// output key trie
+	keyTriEdgesLength := uint32((len(this.keyTrie.edges)))
+	binary.BigEndian.PutUint32(buffer, keyTriEdgesLength)
+	fp.Write(buffer[0:4])
+	for i := 0; i < len(this.keyTrie.edges); i++ {
+		buffer[0] = encode(this.keyTrie.edges[i])
+		fp.Write(buffer[:1])
+	}
+	binary.BigEndian.PutUint32(buffer, uint32(this.keyTrie.bitVector.Size()))
+	fp.Write(buffer[0:4])
+	keyTrieBitVectorWords := this.keyTrie.bitVector.words
+	for i := 0; i < len(keyTrieBitVectorWords); i++ {
+		binary.BigEndian.PutUint64(buffer, keyTrieBitVectorWords[i])
+		fp.Write(buffer)
+	}
+	// output value trie
+	valueTriEdgesLength := uint32((len(this.valueTrie.edges)))
+	binary.BigEndian.PutUint32(buffer, valueTriEdgesLength)
+	fp.Write(buffer[:4])
+	for i := 0; i < len(this.valueTrie.edges); i++ {
+		binary.BigEndian.PutUint16(buffer, this.valueTrie.edges[i])
+		fp.Write(buffer[:2])
+	}
+	binary.BigEndian.PutUint32(buffer, uint32(this.valueTrie.bitVector.Size()))
+	fp.Write(buffer[0:4])
+	valueTrieBitVectorWords := this.valueTrie.bitVector.words
+	for i := 0; i < len(valueTrieBitVectorWords); i++ {
+		binary.BigEndian.PutUint64(buffer, valueTrieBitVectorWords[i])
+		fp.Write(buffer)
+	}
+
+	// output mapping trie
+	binary.BigEndian.PutUint32(buffer, uint32(len(this.mappingBitVector.words)))
+	fp.Write(buffer[:4])
+	for _, w := range this.mappingBitVector.words {
+		binary.BigEndian.PutUint64(buffer, w)
+		fp.Write(buffer)
+	}
+	binary.BigEndian.PutUint32(buffer, uint32(len(this.mapping)))
+	fp.Write(buffer[:4])
+	for _, x := range this.mapping {
+		binary.BigEndian.PutUint32(buffer, x)
+		fp.Write(buffer[:4])
 	}
 }
