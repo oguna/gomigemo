@@ -69,7 +69,7 @@ func (this *BitVector) Select(count uint32, b bool) uint {
 	} else {
 		countInLb = count - uint32(512*lbIndex-this.lb[lbIndex])
 	}
-	var sbIndex = this.lowerBoundBinarySearchSB(countInLb, lbIndex*8, lbIndex*8+8, b) - 1
+	var sbIndex = this.lowerBoundBinarySearchSB(uint16(countInLb), lbIndex*8, lbIndex*8+8, b) - 1
 	if b {
 		countInSb = countInLb - uint32(this.sb[sbIndex])
 	} else {
@@ -119,16 +119,19 @@ func selectInWord(word uint64, count uint) uint {
 func (this *BitVector) lowerBoundBinarySearchLB(key uint32, b bool) uint32 {
 	var high = len(this.lb)
 	var low = -1
-	for high-low > 1 {
-		var mid = int(high+low) >> 1
-		if b {
+	if b {
+		for high-low > 1 {
+			var mid = int(high+low) >> 1
 			if this.lb[mid] < key {
 				low = mid
 			} else {
 				high = mid
 			}
-		} else {
-			if 512*mid-int(this.lb[mid]) < int(key) {
+		}
+	} else {
+		for high-low > 1 {
+			var mid = int(high+low) >> 1
+			if uint32(mid<<9)-this.lb[mid] < key {
 				low = mid
 			} else {
 				high = mid
@@ -138,17 +141,26 @@ func (this *BitVector) lowerBoundBinarySearchLB(key uint32, b bool) uint32 {
 	return uint32(high)
 }
 
-func (this *BitVector) lowerBoundBinarySearchSB(key uint32, fromIndex uint32, toIndex uint32, b bool) uint32 {
+func (this *BitVector) lowerBoundBinarySearchSB(key uint16, fromIndex uint32, toIndex uint32, b bool) uint32 {
 	var high = toIndex
 	var low = fromIndex - 1
-	for high-low > 1 {
-		var mid = (high + low) >> 1
-		if b && uint32(this.sb[mid]) < key {
-			low = mid
-		} else if !b && (uint32(64*(mid&7)-uint32(this.sb[mid])) < uint32(key)) {
-			low = mid
-		} else {
-			high = mid
+	if b {
+		for high-low > 1 {
+			mid := (high + low) >> 1
+			if this.sb[mid] < key {
+				low = mid
+			} else {
+				high = mid
+			}
+		}
+	} else {
+		for high-low > 1 {
+			mid := (high + low) >> 1
+			if uint16(mid&7)<<6-this.sb[mid] < key {
+				low = mid
+			} else {
+				high = mid
+			}
 		}
 	}
 	return high
