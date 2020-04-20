@@ -5,7 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/oguna/gomigemo/migemo"
 )
@@ -22,6 +25,7 @@ func main() {
 	v := flag.Bool("v", false, "Use vim style regexp.")
 	e := flag.Bool("e", false, "Use emacs style regexp.")
 	n := flag.Bool("n", false, "Don't use newline match.")
+	p := flag.Int("p", 0, "<port> number for HTTP server.")
 
 	flag.Parse()
 
@@ -50,7 +54,28 @@ func main() {
 	buf, err := ioutil.ReadAll(f)
 	dict := migemo.NewCompactDictionary(buf)
 
-	if len(*w) == 0 {
+	if *p > 0 {
+		http.HandleFunc("/migemo", func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				v := r.URL.Query()
+				q, ok := v["q"]
+				if !ok {
+					return
+				}
+				for _, a := range q {
+					regex := migemo.Query(a, dict, regex_operator)
+					fmt.Fprintln(w, regex)
+				}
+			default:
+				w.WriteHeader(http.StatusMethodNotAllowed)
+			}
+		})
+		err := http.ListenAndServe(":"+strconv.Itoa(*p), nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if len(*w) == 0 {
 		stdin := bufio.NewScanner(os.Stdin)
 		if !*q {
 			fmt.Print("QUERY: ")
@@ -73,4 +98,7 @@ func main() {
 		r := migemo.Query(*w, dict, regex_operator)
 		fmt.Println(r)
 	}
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
 }
