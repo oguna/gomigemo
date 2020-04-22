@@ -9,7 +9,7 @@ import (
 
 func TestTernaryRegexGenerator_1(t *testing.T) {
 	regex_operator := migemo.NewRegexOperator("|", "(", ")", "[", "]", "")
-	generator := migemo.NewTerminaryRegexGenerator(*regex_operator)
+	generator := migemo.NewTernaryRegexGenerator(*regex_operator)
 	generator.Add(utf16.Encode([]rune("bad")))
 	generator.Add(utf16.Encode([]rune("dad")))
 	result := string(utf16.Decode(generator.Generate()))
@@ -21,7 +21,7 @@ func TestTernaryRegexGenerator_1(t *testing.T) {
 
 func TestTernaryRegexGenerator_2(t *testing.T) {
 	regex_operator := migemo.NewRegexOperator("|", "(", ")", "[", "]", "")
-	generator := migemo.NewTerminaryRegexGenerator(*regex_operator)
+	generator := migemo.NewTernaryRegexGenerator(*regex_operator)
 	generator.Add(utf16.Encode([]rune("bad")))
 	generator.Add(utf16.Encode([]rune("bat")))
 	result := string(utf16.Decode(generator.Generate()))
@@ -33,7 +33,7 @@ func TestTernaryRegexGenerator_2(t *testing.T) {
 
 func TestTernaryRegexGenerator_3(t *testing.T) {
 	regex_operator := migemo.NewRegexOperator("|", "(", ")", "[", "]", "")
-	generator := migemo.NewTerminaryRegexGenerator(*regex_operator)
+	generator := migemo.NewTernaryRegexGenerator(*regex_operator)
 	generator.Add(utf16.Encode([]rune("a")))
 	generator.Add(utf16.Encode([]rune("b")))
 	generator.Add(utf16.Encode([]rune("a")))
@@ -46,7 +46,7 @@ func TestTernaryRegexGenerator_3(t *testing.T) {
 
 func TestTernaryRegexGenerator_4(t *testing.T) {
 	regex_operator := migemo.NewRegexOperator("|", "(", ")", "[", "]", "")
-	generator := migemo.NewTerminaryRegexGenerator(*regex_operator)
+	generator := migemo.NewTernaryRegexGenerator(*regex_operator)
 	generator.Add(utf16.Encode([]rune("a.b")))
 	result := string(utf16.Decode(generator.Generate()))
 	expect := "a\\.b"
@@ -57,7 +57,7 @@ func TestTernaryRegexGenerator_4(t *testing.T) {
 
 func TestTernaryRegexGenerator_5(t *testing.T) {
 	regex_operator := migemo.NewRegexOperator("|", "(", ")", "[", "]", "")
-	generator := migemo.NewTerminaryRegexGenerator(*regex_operator)
+	generator := migemo.NewTernaryRegexGenerator(*regex_operator)
 	generator.Add(utf16.Encode([]rune("abc")))
 	generator.Add(utf16.Encode([]rune("abcd")))
 	result := string(utf16.Decode(generator.Generate()))
@@ -69,7 +69,7 @@ func TestTernaryRegexGenerator_5(t *testing.T) {
 
 func TestTernaryRegexGenerator_6(t *testing.T) {
 	regex_operator := migemo.NewRegexOperator("|", "(", ")", "[", "]", "")
-	generator := migemo.NewTerminaryRegexGenerator(*regex_operator)
+	generator := migemo.NewTernaryRegexGenerator(*regex_operator)
 	generator.Add(utf16.Encode([]rune("abcd")))
 	generator.Add(utf16.Encode([]rune("abc")))
 	result := string(utf16.Decode(generator.Generate()))

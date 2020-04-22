@@ -50,7 +50,7 @@ func (this *TernaryRegexGenerator) isEscapeCharacter(c uint16) bool {
 	return false
 }
 
-func NewTerminaryRegexGenerator(operator RegexOperator) *TernaryRegexGenerator {
+func NewTernaryRegexGenerator(operator RegexOperator) *TernaryRegexGenerator {
 	return &TernaryRegexGenerator{
 		root:             nil,
 		operator:         operator,
