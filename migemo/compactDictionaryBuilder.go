@@ -51,7 +51,7 @@ func BuildDictionaryFromMigemoDictFile(fp *os.File) *CompactDictionary {
 
 	// build value trie
 	valuesUtf16 := make([][]uint16, 0, len(dict))
-	for k, _ := range values {
+	for k := range values {
 		valuesUtf16 = append(valuesUtf16, utf16.Encode([]rune(k)))
 	}
 	sort.Slice(valuesUtf16, func(i, j int) bool { return CompareUtf16String(valuesUtf16[i], valuesUtf16[j]) < 0 })
