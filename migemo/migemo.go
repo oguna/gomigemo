@@ -8,7 +8,7 @@ import (
 
 func QueryAWord(word string, dict *CompactDictionary, operator *RegexOperator) string {
 	var utf16word = utf16.Encode([]rune(word))
-	var generator = NewRegexGenerator(*operator)
+	var generator = NewTernaryRegexGenerator(*operator)
 	generator.Add(utf16word)
 	var lower = utf16.Encode([]rune(strings.ToLower(word)))
 	if dict != nil {

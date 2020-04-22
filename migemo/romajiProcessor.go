@@ -343,7 +343,7 @@ func NewRomajiProcessor() *RomajiProcessor {
 	}
 	sort.Slice(entries, func(i, j int) bool { return entries[i].index < entries[j].index })
 	var indexes = make([]uint32, len(entries))
-	for i, _ := range indexes {
+	for i := range indexes {
 		indexes[i] = entries[i].index
 	}
 	return &RomajiProcessor{

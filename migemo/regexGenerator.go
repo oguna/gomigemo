@@ -11,7 +11,7 @@ type RegexNode struct {
 type RegexGenerator struct {
 	operator         RegexOperator
 	root             *RegexNode
-	escapeCharacters map[uint16]struct{}
+	escapeCharacters [2]uint64
 }
 
 type RegexOperator struct {
@@ -44,16 +44,23 @@ func NewRegexNode(code uint16) *RegexNode {
 
 func NewRegexGenerator(operator RegexOperator) *RegexGenerator {
 	const ESCAPE = "\\.[]{}()*+-?^$|"
-	var escapeCharacters = make(map[uint16]struct{})
+	bits := [2]uint64{}
 	for _, r := range ESCAPE {
 		var c = uint16(r)
-		escapeCharacters[c] = struct{}{}
+		bits[c/64] |= 1 << (c % 64)
 	}
 	return &RegexGenerator{
 		root:             nil,
 		operator:         operator,
-		escapeCharacters: escapeCharacters,
+		escapeCharacters: bits,
 	}
+}
+
+func (this *RegexGenerator) isEscapeCharacter(c uint16) bool {
+	if c < 128 {
+		return (this.escapeCharacters[c/64]>>(c%64))&1 == 1
+	}
+	return false
 }
 
 func _add(node *RegexNode, word []uint16, offset int) *RegexNode {
@@ -111,11 +118,11 @@ func (this *RegexGenerator) generateStub(node *RegexNode) []uint16 {
 	var brother = 1
 	var haschild = 0
 	var buf []uint16
-	for tmp := node; tmp != nil; tmp = tmp.next {
-		if tmp.next != nil {
+	for iter := node; iter != nil; iter = iter.next {
+		if iter.next != nil {
 			brother++
 		}
-		if tmp.child != nil {
+		if iter.child != nil {
 			haschild++
 		}
 	}
@@ -129,15 +136,13 @@ func (this *RegexGenerator) generateStub(node *RegexNode) []uint16 {
 		if nochild > 1 {
 			buf = append(buf, this.operator.beginClass...)
 		}
-		for tmp := node; tmp != nil; tmp = tmp.next {
-			if tmp.child != nil {
-				continue
+		for iter := node; iter != nil; iter = iter.next {
+			if iter.child == nil {
+				if this.isEscapeCharacter(iter.code) {
+					buf = append(buf, 92)
+				}
+				buf = append(buf, iter.code)
 			}
-			var _, ok = this.escapeCharacters[tmp.code]
-			if ok {
-				buf = append(buf, 92)
-			}
-			buf = append(buf, tmp.code)
 		}
 		if nochild > 1 {
 			buf = append(buf, this.operator.endClass...)
@@ -148,26 +153,19 @@ func (this *RegexGenerator) generateStub(node *RegexNode) []uint16 {
 		if nochild > 0 {
 			buf = append(buf, this.operator.or...)
 		}
-		var tmp *RegexNode = nil
-		for tmp = node; tmp.child == nil; tmp = tmp.next {
-		}
-		for true {
-			var _, ok = this.escapeCharacters[tmp.code]
-			if ok {
-				buf = append(buf, 92)
-			}
-			buf = append(buf, tmp.code)
-			if this.operator.newline != nil { // TODO: always true
-				buf = append(buf, this.operator.newline...)
-			}
-			buf = append(buf, this.generateStub(tmp.child)...)
-			for tmp = tmp.next; tmp != nil && tmp.child == nil; tmp = tmp.next {
-			}
-			if tmp == nil {
-				break
-			}
-			if haschild > 1 {
-				buf = append(buf, this.operator.or...)
+		for iter := node; iter != nil; iter = iter.next {
+			if iter.child != nil {
+				if this.isEscapeCharacter(iter.code) {
+					buf = append(buf, 92)
+				}
+				buf = append(buf, iter.code)
+				if this.operator.newline != nil { // TODO: always true
+					buf = append(buf, this.operator.newline...)
+				}
+				buf = append(buf, this.generateStub(iter.child)...)
+				if haschild > 1 && iter.next != nil {
+					buf = append(buf, this.operator.or...)
+				}
 			}
 		}
 	}
