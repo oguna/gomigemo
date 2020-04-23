@@ -2,12 +2,12 @@ package migemo
 
 import (
 	"sort"
-	"unicode/utf16"
+	"strings"
 )
 
 type RomanEntry struct {
-	roman    []uint16
-	hiragana []uint16
+	roman    string
+	hiragana string
 	remain   int
 	index    uint32
 }
@@ -19,10 +19,10 @@ type RomajiProcessor struct {
 
 func NewRomanEntry(roman string, hiragana string, remain int) *RomanEntry {
 	return &RomanEntry{
-		roman:    utf16.Encode([]rune(roman)),
-		hiragana: utf16.Encode([]rune(hiragana)),
+		roman:    roman,
+		hiragana: hiragana,
 		remain:   remain,
-		index:    calculateIndex(utf16.Encode([]rune(roman))),
+		index:    calculateIndex(roman),
 	}
 }
 
@@ -352,15 +352,15 @@ func NewRomajiProcessor() *RomajiProcessor {
 	}
 }
 
-func calculateIndex(roman []uint16) uint32 {
+func calculateIndex(roman string) uint32 {
 	return _calculateIndex(roman, 0, 4)
 }
 
-func _calculateIndex(roman []uint16, start int, end int) uint32 {
+func _calculateIndex(roman string, start int, end int) uint32 {
 	var result uint32 = 0
 	for i := 0; i < 4; i++ {
 		index := i + start
-		var c uint16 = 0
+		var c uint8 = 0
 		if index < len(roman) && index < end {
 			c = roman[index]
 		}
@@ -373,15 +373,15 @@ func _calculateIndex(roman []uint16, start int, end int) uint32 {
 }
 
 type RomajiPredictiveResult struct {
-	Prefix   []uint16
-	Suffixes [][]uint16
+	Prefix   string
+	Suffixes []string
 }
 
-func (this *RomajiProcessor) RomajiToHiragana(romaji []uint16) []uint16 {
+func (this *RomajiProcessor) RomajiToHiragana(romaji string) string {
 	if len(romaji) == 0 {
-		return []uint16{}
+		return ""
 	}
-	var hiragana = []uint16{}
+	var hiragana strings.Builder
 	var start = 0
 	var end = 1
 	for start < len(romaji) {
@@ -405,19 +405,19 @@ func (this *RomajiProcessor) RomajiToHiragana(romaji []uint16) []uint16 {
 		}
 		if lastFound >= 0 {
 			var entry = this.entries[lastFound]
-			hiragana = append(hiragana, entry.hiragana...)
+			hiragana.WriteString(entry.hiragana)
 			start = start + len(entry.roman) - entry.remain
 			end = start + 1
 		} else {
-			hiragana = append(hiragana, romaji[start])
+			hiragana.WriteByte(romaji[start])
 			start = start + 1
 			end = start + 1
 		}
 	}
-	return hiragana
+	return hiragana.String()
 }
 
-func (this *RomajiProcessor) findRomanEntryPredicatively(roman []uint16, offset int) []RomanEntry {
+func (this *RomajiProcessor) findRomanEntryPredicatively(roman string, offset int) []RomanEntry {
 	var startIndex = 0
 	var endIndex = len(this.indexes)
 	for i := 0; i < 4; i++ {
@@ -446,14 +446,14 @@ func (this *RomajiProcessor) findRomanEntryPredicatively(roman []uint16, offset 
 	return result
 }
 
-func (this *RomajiProcessor) RomajiToHiraganaPredictively(romaji []uint16) RomajiPredictiveResult {
+func (this *RomajiProcessor) RomajiToHiraganaPredictively(romaji string) RomajiPredictiveResult {
 	if len(romaji) == 0 {
 		return RomajiPredictiveResult{
-			Prefix:   []uint16{},
-			Suffixes: [][]uint16{{}},
+			Prefix:   "",
+			Suffixes: []string{""},
 		}
 	}
-	var hiragana = []uint16{}
+	var hiragana strings.Builder
 	var start = 0
 	var end = 1
 	for start < len(romaji) {
@@ -476,39 +476,43 @@ func (this *RomajiProcessor) RomajiToHiraganaPredictively(romaji []uint16) Romaj
 			end++
 		}
 		if end > len(romaji) && upper-lower > 1 {
-			var set = [][]uint16{}
+			var set = make(map[string]struct{})
 			for i := lower; i < upper; i++ {
 				var re = this.entries[i]
 				if re.remain > 0 {
 					var set2 = this.findRomanEntryPredicatively(romaji, end-1-re.remain)
 					for _, re2 := range set2 {
 						if re2.remain == 0 {
-							set = append(set, append(re.hiragana, re2.hiragana...))
+							set[re.hiragana+re2.hiragana] = struct{}{}
 						}
 					}
 				} else {
-					set = append(set, re.hiragana)
+					set[re.hiragana] = struct{}{}
 				}
 			}
+			array := make([]string, 0, len(set))
+			for k := range set {
+				array = append(array, k)
+			}
 			return RomajiPredictiveResult{
-				Prefix:   hiragana,
-				Suffixes: set,
+				Prefix:   hiragana.String(),
+				Suffixes: array,
 			}
 		}
 		if lastFound >= 0 {
 			var entry = this.entries[lastFound]
-			hiragana = append(hiragana, entry.hiragana...)
+			hiragana.WriteString(entry.hiragana)
 			start = start + len(entry.roman) - entry.remain
 			end = start + 1
 		} else {
-			hiragana = append(hiragana, romaji[start])
+			hiragana.WriteByte(romaji[start])
 			start++
 			end = start + 1
 		}
 	}
 	return RomajiPredictiveResult{
-		Prefix:   hiragana,
-		Suffixes: [][]uint16{{}},
+		Prefix:   hiragana.String(),
+		Suffixes: []string{""},
 	}
 }
 

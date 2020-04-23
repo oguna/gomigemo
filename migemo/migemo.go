@@ -10,9 +10,10 @@ func QueryAWord(word string, dict *CompactDictionary, operator *RegexOperator) s
 	var utf16word = utf16.Encode([]rune(word))
 	var generator = NewTernaryRegexGenerator(*operator)
 	generator.Add(utf16word)
-	var lower = utf16.Encode([]rune(strings.ToLower(word)))
+	var lower = strings.ToLower(word)
 	if dict != nil {
-		dict.PredictiveSearch(lower, func(word []uint16) {
+		var utf16lower = utf16.Encode([]rune(lower))
+		dict.PredictiveSearch(utf16lower, func(word []uint16) {
 			generator.Add(word)
 		})
 	}
@@ -24,14 +25,15 @@ func QueryAWord(word string, dict *CompactDictionary, operator *RegexOperator) s
 	var romajiProcessor = NewRomajiProcessor()
 	var hiraganaResult = romajiProcessor.RomajiToHiraganaPredictively(lower)
 	for _, a := range hiraganaResult.Suffixes {
-		var hira = append(hiraganaResult.Prefix, a...)
-		generator.Add(hira)
+		var hira = hiraganaResult.Prefix + a
+		var utf16hira = utf16.Encode([]rune(hira))
+		generator.Add(utf16hira)
 		if dict != nil {
-			dict.PredictiveSearch(hira, func(word []uint16) {
+			dict.PredictiveSearch(utf16hira, func(word []uint16) {
 				generator.Add(word)
 			})
 		}
-		var kata = ConvertHira2Kata(string([]rune(utf16.Decode(hira))))
+		var kata = ConvertHira2Kata(string([]rune(utf16.Decode(utf16hira))))
 		generator.Add(utf16.Encode([]rune(kata)))
 		generator.Add(utf16.Encode([]rune(ConvertZen2Han(kata))))
 	}
