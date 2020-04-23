@@ -164,7 +164,7 @@ func (this *CompactDictionary) Save(fp *os.File) {
 	}
 
 	// output mapping trie
-	binary.BigEndian.PutUint32(buffer, uint32(len(this.mappingBitVector.words)))
+	binary.BigEndian.PutUint32(buffer, uint32(this.mappingBitVector.sizeInBits))
 	fp.Write(buffer[:4])
 	for _, w := range this.mappingBitVector.words {
 		binary.BigEndian.PutUint64(buffer, w)
