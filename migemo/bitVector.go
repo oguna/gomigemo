@@ -47,11 +47,7 @@ func (this *BitVector) Rank(pos uint, b bool) uint {
 	}*/
 	var count1 uint = uint(this.sb[pos/64]) + uint(this.lb[pos/512])
 	var word = this.words[pos/64]
-	var shiftSize = 64 - (pos & 63)
-	var mask uint64 = 0
-	if shiftSize < 64 {
-		mask = uint64(0xFFFFFFFFFFFFFFFF) >> shiftSize
-	}
+	var mask = uint64(0xFFFFFFFFFFFFFFFF) >> (64 - pos&63)
 	count1 += uint(bits.OnesCount64(word & mask))
 	if b {
 		return count1
