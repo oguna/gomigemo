@@ -68,14 +68,16 @@ func BuildDictionaryFromMigemoDictFile(fp *os.File) *CompactDictionary {
 	mapping := make([]uint32, mappingCount)
 	mappingIndex := 0
 	mappingBitList := NewBitList()
+	key := make([]uint16, 0, 16)
 	for i := 1; i <= keyTrie.Size(); i++ {
-		key := keyTrie.GetKey(uint32(i))
+		key = key[:0]
+		keyTrie.ReverseLookup(uint32(i), &key)
 		mappingBitList.Add(false)
 		values, ok := dict[string(utf16.Decode(key))]
 		if ok {
 			for j := 0; j < len(values); j++ {
 				mappingBitList.Add(true)
-				mapping[mappingIndex] = uint32(valueTrie.Get(utf16.Encode([]rune(values[j]))))
+				mapping[mappingIndex] = uint32(valueTrie.Lookup(utf16.Encode([]rune(values[j]))))
 				mappingIndex++
 			}
 		}

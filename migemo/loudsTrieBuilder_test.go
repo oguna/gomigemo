@@ -14,7 +14,7 @@ func TestLoudsTrieBuilder_1(t *testing.T) {
 		keys[i] = utf16.Encode([]rune(words[i]))
 	}
 	trie, nodes, _ := migemo.BuildLoudsTrie(keys)
-	if trie.Get(utf16.Encode([]rune("box"))) != 10 {
+	if trie.Lookup(utf16.Encode([]rune("box"))) != 10 {
 		t.Error()
 	}
 	var expectedNodes = []uint32{13, 8, 14, 10, 11, 16}
@@ -24,7 +24,7 @@ func TestLoudsTrieBuilder_1(t *testing.T) {
 		}
 	}
 	for i := 0; i < len(nodes); i++ {
-		if uint32(trie.Get(keys[i])) != expectedNodes[i] {
+		if uint32(trie.Lookup(keys[i])) != expectedNodes[i] {
 			t.Error(words[i])
 		}
 	}
@@ -47,17 +47,17 @@ func TestLoudsTrieBuilder_2(t *testing.T) {
 		}
 	}
 	for i := 0; i < len(nodes); i++ {
-		if uint32(trie.Get(keys[i])) != expectedNodes[i] {
+		if uint32(trie.Lookup(keys[i])) != expectedNodes[i] {
 			t.Error(words[i])
 		}
 	}
-	if trie.Get(utf16.Encode([]rune(""))) != 1 {
+	if trie.Lookup(utf16.Encode([]rune(""))) != 1 {
 		t.Error()
 	}
-	if trie.Get(utf16.Encode([]rune("bbb"))) != -1 {
+	if trie.Lookup(utf16.Encode([]rune("bbb"))) != -1 {
 		t.Error()
 	}
-	if trie.Get(utf16.Encode([]rune("c"))) != -1 {
+	if trie.Lookup(utf16.Encode([]rune("c"))) != -1 {
 		t.Error()
 	}
 }
@@ -87,7 +87,7 @@ func TestLoudsTrieBuilderNew(t *testing.T) {
 		builder.Add(w)
 	}
 	var trie = builder.Build()
-	if trie.Get(utf16.Encode([]rune("box"))) != 10 {
+	if trie.Lookup(utf16.Encode([]rune("box"))) != 10 {
 		t.Error()
 	}
 }

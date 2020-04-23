@@ -95,30 +95,36 @@ func encode(c uint16) uint8 {
 }
 
 func (this *CompactDictionary) Search(key []uint16, f func([]uint16)) {
-	var keyIndex = this.keyTrie.Get(key)
+	var keyIndex = this.keyTrie.Lookup(key)
 	if keyIndex != -1 {
 		var valueStartPos = this.mappingBitVector.Select(uint32(keyIndex), false)
 		var valueEndPos = this.mappingBitVector.NextClearBit(valueStartPos + 1)
 		var size = uint(valueEndPos - valueStartPos - 1)
 		if size > 0 {
 			var offset = this.mappingBitVector.Rank(valueStartPos, false)
+			word := make([]uint16, 0, 16)
 			for i := uint(0); i < size; i++ {
-				f(this.valueTrie.GetKey(this.mapping[valueStartPos-uint(offset)+i]))
+				this.valueTrie.ReverseLookup(this.mapping[valueStartPos-offset+i], &word)
+				f(word)
+				word = word[:0]
 			}
 		}
 	}
 }
 
 func (this *CompactDictionary) PredictiveSearch(key []uint16, f func([]uint16)) {
-	var keyIndex = this.keyTrie.Get(key)
+	var keyIndex = this.keyTrie.Lookup(key)
 	if keyIndex > 1 {
-		this.keyTrie.Iterate(keyIndex, func(i int) {
+		this.keyTrie.PredictiveSearch(keyIndex, func(i int) {
 			var valueStartPos uint = this.mappingBitVector.Select(uint32(i), false)
 			var valueEndPos uint = this.mappingBitVector.NextClearBit(valueStartPos + 1)
 			var size = valueEndPos - valueStartPos - 1
 			var offset = this.mappingBitVector.Rank(valueStartPos, false)
+			word := make([]uint16, 0, 16)
 			for j := uint(0); j < size; j++ {
-				f(this.valueTrie.GetKey(this.mapping[valueStartPos-offset+j]))
+				this.valueTrie.ReverseLookup(this.mapping[valueStartPos-offset+j], &word)
+				f(word)
+				word = word[:0]
 			}
 		})
 	}

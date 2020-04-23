@@ -12,16 +12,16 @@ func NewLoudsTrie(bitVector *BitVector, edges []uint16) *LoudsTrie {
 	}
 }
 
-func (this *LoudsTrie) GetKey(index uint32) []uint16 {
-	s := []uint16{}
+func (this *LoudsTrie) ReverseLookup(index uint32, key *[]uint16) int {
+	offset := len(*key)
 	for index > 1 {
-		s = append(s, this.edges[index])
+		*key = append(*key, this.edges[index])
 		index = this.Parent(index)
 	}
-	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
+	for i, j := offset, len(*key)-1; i < j; i, j = i+1, j-1 {
+		(*key)[i], (*key)[j] = (*key)[j], (*key)[i]
 	}
-	return s
+	return len(*key) - offset
 }
 
 func (this *LoudsTrie) Parent(x uint32) uint32 {
@@ -53,7 +53,7 @@ func (this *LoudsTrie) Traverse(index uint32, c uint16) int {
 	}
 }
 
-func (this *LoudsTrie) Get(key []uint16) int {
+func (this *LoudsTrie) Lookup(key []uint16) int {
 	var nodeIndex int = 1
 	for _, c := range key {
 		nodeIndex = this.Traverse(uint32(nodeIndex), c)
@@ -68,7 +68,7 @@ func (this *LoudsTrie) Get(key []uint16) int {
 	}
 }
 
-func (this *LoudsTrie) Iterate(index int, f func(int)) {
+func (this *LoudsTrie) PredictiveSearch(index int, f func(int)) {
 	f(index)
 	var child = this.FirstChild(uint32(index))
 	if child == -1 {
@@ -76,7 +76,7 @@ func (this *LoudsTrie) Iterate(index int, f func(int)) {
 	}
 	var childPos = this.bitVector.Select(uint32(child), true)
 	for this.bitVector.Get(uint32(childPos)) {
-		this.Iterate(child, f)
+		this.PredictiveSearch(child, f)
 		child++
 		childPos++
 	}
