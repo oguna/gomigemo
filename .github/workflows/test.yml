@@ -1,7 +1,10 @@
 name: test
-on: [push]
+on:
+  push:
+    branches:
+      - master
 jobs:
-  goreleaser:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
