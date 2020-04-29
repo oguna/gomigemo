@@ -196,4 +196,5 @@ func (this *CompactDictionary) Save(fp *os.File) {
 		binary.BigEndian.PutUint32(buffer, x)
 		writer.Write(buffer[:4])
 	}
+	writer.Flush()
 }

@@ -85,9 +85,10 @@ func BuildDictionaryFromMigemoDictFile(fp *os.File) *CompactDictionary {
 	mappingBitVector := NewBitVector(mappingBitList.Words, uint32(mappingBitList.Size))
 
 	return &CompactDictionary{
-		keyTrie:          keyTrie,
-		valueTrie:        valueTrie,
-		mapping:          mapping,
-		mappingBitVector: mappingBitVector,
+		keyTrie:           keyTrie,
+		valueTrie:         valueTrie,
+		mapping:           mapping,
+		mappingBitVector:  mappingBitVector,
+		hasMappingBitList: createHasMappingBitList(mappingBitVector),
 	}
 }
