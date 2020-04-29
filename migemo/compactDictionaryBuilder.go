@@ -2,13 +2,13 @@ package migemo
 
 import (
 	"bufio"
-	"os"
+	"io"
 	"sort"
 	"strings"
 	"unicode/utf16"
 )
 
-func BuildDictionaryFromMigemoDictFile(fp *os.File) *CompactDictionary {
+func BuildDictionaryFromMigemoDictFile(fp io.Reader) *CompactDictionary {
 	scanner := bufio.NewScanner(fp)
 	dict := make(map[string][]string)
 	keys := make([]string, 0, 1024)

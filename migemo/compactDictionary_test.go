@@ -11,7 +11,7 @@ import (
 )
 
 func TestCompactDictionary_1(t *testing.T) {
-	f, err := os.Open("../migemo-compact-dict")
+	f, err := os.Open("../testdata/todofuken-dict")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -22,17 +22,16 @@ func TestCompactDictionary_1(t *testing.T) {
 	fn := func(s []uint16) {
 		list = append(list, string(utf16.Decode(s)))
 	}
-	dict.Search(utf16.Encode([]rune("きかい")), fn)
+	dict.Search(utf16.Encode([]rune("とうきょうと")), fn)
 	for _, w := range list {
-		if w == "機械" {
+		if w == "東京都" {
 			return
 		}
 	}
 	t.Error()
 }
-
 func TestCompactDictionary_2(t *testing.T) {
-	f, err := os.Open("../migemo-compact-dict")
+	f, err := os.Open("../testdata/todofuken-dict")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -43,30 +42,9 @@ func TestCompactDictionary_2(t *testing.T) {
 	fn := func(s []uint16) {
 		list = append(list, string(utf16.Decode(s)))
 	}
-	dict.Search(utf16.Encode([]rune("し")), fn)
+	dict.PredictiveSearch(utf16.Encode([]rune("か")), fn)
 	for _, w := range list {
-		if w == "市" {
-			return
-		}
-	}
-	t.Error()
-}
-
-func TestCompactDictionary_3(t *testing.T) {
-	f, err := os.Open("../migemo-compact-dict")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer f.Close()
-	buf, err := ioutil.ReadAll(f)
-	dict := migemo.NewCompactDictionary(buf)
-	list := []string{}
-	fn := func(s []uint16) {
-		list = append(list, string(utf16.Decode(s)))
-	}
-	dict.PredictiveSearch(utf16.Encode([]rune("し")), fn)
-	for _, w := range list {
-		if w == "三味" {
+		if w == "神奈川県" {
 			return
 		}
 	}
