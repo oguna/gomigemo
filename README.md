@@ -1,5 +1,7 @@
 # gomigemo
 
+![test](https://github.com/oguna/gomigemo/workflows/test/badge.svg)
+
 ローマ字のまま日本語をインクリメンタル検索するためのツールであるMigemoを、Go言語で実装したものです。
 
 ## C/Migemoとの比較
