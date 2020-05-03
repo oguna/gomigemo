@@ -68,7 +68,8 @@ func (this *LoudsTrie) Lookup(key []uint16) int {
 	}
 }
 
-func (this *LoudsTrie) PredictiveSearch(index int, f func(int)) {
+// PredictiveSearchDepthFirst は、指定したノードから葉の方向に全てのノードを深さ優先で巡る
+func (this *LoudsTrie) PredictiveSearchDepthFirst(index int, f func(int)) {
 	f(index)
 	var child = this.FirstChild(uint32(index))
 	if child == -1 {
@@ -76,9 +77,22 @@ func (this *LoudsTrie) PredictiveSearch(index int, f func(int)) {
 	}
 	var childPos = this.bitVector.Select(uint32(child), true)
 	for this.bitVector.Get(uint32(childPos)) {
-		this.PredictiveSearch(child, f)
+		this.PredictiveSearchDepthFirst(child, f)
 		child++
 		childPos++
+	}
+}
+
+// PredictiveSearchBreadthFirst は、指定したノードから葉の方向に全てのノードを幅優先で巡る．
+func (this *LoudsTrie) PredictiveSearchBreadthFirst(node int, f func(int)) {
+	lower := uint(node)
+	upper := uint(node + 1)
+	for upper-lower > 0 {
+		for i := lower; i < upper; i++ {
+			f(int(i))
+		}
+		lower = this.bitVector.Rank(this.bitVector.Select(uint32(lower), false)+1, true) + 1
+		upper = this.bitVector.Rank(this.bitVector.Select(uint32(upper), false)+1, true) + 1
 	}
 }
 

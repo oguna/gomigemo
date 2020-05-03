@@ -133,7 +133,7 @@ func (this *CompactDictionary) PredictiveSearch(key []uint16, f func([]uint16)) 
 	var keyIndex = this.keyTrie.Lookup(key)
 	word := make([]uint16, 0, 16)
 	if keyIndex > 1 {
-		this.keyTrie.PredictiveSearch(keyIndex, func(i int) {
+		this.keyTrie.PredictiveSearchBreadthFirst(keyIndex, func(i int) {
 			if this.hasMappingBitList.Get(i) {
 				var valueStartPos uint = this.mappingBitVector.Select(uint32(i), false)
 				var valueEndPos uint = this.mappingBitVector.NextClearBit(valueStartPos + 1)
