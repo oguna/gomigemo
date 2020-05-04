@@ -22,3 +22,17 @@ func TestLoadFromText(t *testing.T) {
 		t.Error("")
 	}
 }
+
+func TestCompactDictionaryBuilder_ExtractTail(t *testing.T) {
+	words := []string{"a", "aaa", "b", "cc"}
+	tails := migemo.ExtractTail(words)
+	expectedTails := []uint32{0, 1, 0, 1}
+	if len(tails) != len(expectedTails) {
+		t.Error()
+	}
+	for i := 0; i < len(tails); i++ {
+		if tails[i] != expectedTails[i] {
+			t.Fatalf("#%d expected:%d actual:%d", i, expectedTails[i], tails[i])
+		}
+	}
+}

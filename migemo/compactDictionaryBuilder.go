@@ -92,3 +92,47 @@ func BuildDictionaryFromMigemoDictFile(fp io.Reader) *CompactDictionary {
 		hasMappingBitList: createHasMappingBitList(mappingBitVector),
 	}
 }
+
+// ExtractTail は、文字列の配列から分岐のない末尾(TAIL)を抽出する
+func ExtractTail(words []string) []uint32 {
+	tails := make([]uint32, len(words))
+	for i := 0; i < len(words); i++ {
+		prevWord := []rune{}
+		if i != 0 {
+			prevWord = []rune(words[i-1])
+		}
+		currentWord := []rune(words[i])
+		nextWord := []rune{}
+		if i != len(words)-1 {
+			nextWord = []rune(words[i+1])
+		}
+		cursor := 0
+		for true {
+			prevChar := rune(0)
+			currentChar := rune(0)
+			nextChar := rune(0)
+			if cursor < len(prevWord) {
+				prevChar = prevWord[cursor]
+			}
+			if cursor < len(currentWord) {
+				currentChar = currentWord[cursor]
+			}
+			if cursor < len(nextWord) {
+				nextChar = nextWord[cursor]
+			}
+			if prevChar == 0 && currentChar == 0 && nextChar == 0 {
+				break
+			}
+			if prevChar != currentChar && currentChar != nextChar {
+				break
+			}
+			cursor++
+		}
+		if cursor+1 < len(currentWord) {
+			tails[i] = uint32(len(currentWord)) - uint32(cursor) - 1
+		} else {
+			tails[i] = 0
+		}
+	}
+	return tails
+}
