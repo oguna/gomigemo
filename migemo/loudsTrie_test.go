@@ -2,6 +2,7 @@ package migemo_test
 
 import (
 	"testing"
+	"unicode/utf16"
 
 	"github.com/oguna/gomigemo/migemo"
 )
@@ -17,17 +18,23 @@ func TestLoudsTrie_PredictiveSearchDepthFirst(t *testing.T) {
 		edges[i] = uint16(edgeString[i])
 	}
 	trie := migemo.NewLoudsTrie(bitVector, edges)
-	list := make([]int, 0)
-	trie.PredictiveSearchDepthFirst(4, func(node int) {
-		list = append(list, node)
+	nodes := make([]int, 0)
+	keys := make([]string, 0)
+	trie.PredictiveSearchDepthFirst(4, func(node int, key []uint16) {
+		nodes = append(nodes, node)
+		keys = append(keys, string(utf16.Decode(key)))
 	})
-	expectedList := []int{4, 7, 13, 8, 9, 14}
-	if len(expectedList) != len(list) {
-		t.Errorf("invalid size. expected:%d actual:%d", len(expectedList), len(list))
+	expectedNodes := []int{4, 7, 13, 8, 9, 14}
+	expectedKeys := []string{"", "b", "by", "d", "n", "nk"}
+	if len(expectedNodes) != len(nodes) {
+		t.Errorf("invalid size. expected:%d actual:%d", len(expectedNodes), len(nodes))
 	}
-	for i := 0; i < len(expectedList); i++ {
-		if expectedList[i] != list[i] {
-			t.Errorf("expected:%d actual:%d", expectedList[i], list[i])
+	for i := 0; i < len(expectedNodes); i++ {
+		if expectedNodes[i] != nodes[i] {
+			t.Errorf("expected:%d actual:%d", expectedNodes[i], nodes[i])
+		}
+		if expectedKeys[i] != keys[i] {
+			t.Errorf("expected:%s actual:%s", expectedKeys[i], keys[i])
 		}
 	}
 }

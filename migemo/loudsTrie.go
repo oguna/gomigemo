@@ -69,17 +69,34 @@ func (this *LoudsTrie) Lookup(key []uint16) int {
 }
 
 // PredictiveSearchDepthFirst は、指定したノードから葉の方向に全てのノードを深さ優先で巡る
-func (this *LoudsTrie) PredictiveSearchDepthFirst(index int, f func(int)) {
-	f(index)
-	var child = this.FirstChild(uint32(index))
-	if child == -1 {
-		return
+func (this *LoudsTrie) PredictiveSearchDepthFirst(index int, f func(int, []uint16)) {
+	key := make([]uint16, 0, 8)
+	f(index, key)
+	childPos := this.bitVector.Select(uint32(index), false) + 1
+	if this.bitVector.Get(uint32(childPos)) {
+		child := int(this.bitVector.Rank(childPos, true)) + 1
+		for this.bitVector.Get(uint32(childPos)) {
+			key = append(key, this.edges[child])
+			this.predictiveSearchDepthFirstInternal(child, &key, f)
+			key = (key)[:len(key)-1]
+			child++
+			childPos++
+		}
 	}
-	var childPos = this.bitVector.Select(uint32(child), true)
-	for this.bitVector.Get(uint32(childPos)) {
-		this.PredictiveSearchDepthFirst(child, f)
-		child++
-		childPos++
+}
+
+func (this *LoudsTrie) predictiveSearchDepthFirstInternal(index int, key *[]uint16, f func(int, []uint16)) {
+	f(index, *key)
+	childPos := this.bitVector.Select(uint32(index), false) + 1
+	if this.bitVector.Get(uint32(childPos)) {
+		child := int(this.bitVector.Rank(childPos, true)) + 1
+		for this.bitVector.Get(uint32(childPos)) {
+			*key = append(*key, this.edges[child])
+			this.predictiveSearchDepthFirstInternal(child, key, f)
+			*key = (*key)[:len(*key)-1]
+			child++
+			childPos++
+		}
 	}
 }
 
