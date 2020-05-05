@@ -18,8 +18,8 @@ func TestLoadFromText(t *testing.T) {
 	dict.PredictiveSearch(utf16.Encode([]rune("おお")), func(word []uint16) {
 		matches = append(matches, string(utf16.Decode(word)))
 	})
-	if matches[0] != "大分県" || matches[1] != "大阪府" {
-		t.Error("")
+	if matches[1] != "大分県" || matches[0] != "大阪府" {
+		t.Errorf("expected:[大阪府 大分県] actual:%v", matches)
 	}
 }
 
