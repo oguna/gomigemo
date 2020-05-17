@@ -2,18 +2,21 @@ package migemo
 
 import "unicode/utf16"
 
+// RegexNode は、RegexGeneratorに格納するノード
 type RegexNode struct {
 	code  uint16
 	child *RegexNode
 	next  *RegexNode
 }
 
+// RegexGenerator は、二重連鎖木による正規表現を生成する構造体
 type RegexGenerator struct {
 	operator         RegexOperator
 	root             *RegexNode
 	escapeCharacters [2]uint64
 }
 
+// RegexOperator は、正規表現の記号を格納する
 type RegexOperator struct {
 	or         []uint16
 	beginGroup []uint16
@@ -23,6 +26,7 @@ type RegexOperator struct {
 	newline    []uint16
 }
 
+// NewRegexOperator は、RegexOperatorを初期化する
 func NewRegexOperator(or string, beginGroup string, endGroup string, beginClass string, endClass string, newline string) *RegexOperator {
 	return &RegexOperator{
 		or:         utf16.Encode([]rune(or)),
@@ -34,6 +38,7 @@ func NewRegexOperator(or string, beginGroup string, endGroup string, beginClass 
 	}
 }
 
+// NewRegexNode は、RegexNodeを初期化する
 func NewRegexNode(code uint16) *RegexNode {
 	return &RegexNode{
 		code:  code,
@@ -42,6 +47,7 @@ func NewRegexNode(code uint16) *RegexNode {
 	}
 }
 
+// NewRegexGenerator は、RegexGeneratorを初期化する
 func NewRegexGenerator(operator RegexOperator) *RegexGenerator {
 	const ESCAPE = "\\.[]{}()*+-?^$|"
 	bits := [2]uint64{}
@@ -56,9 +62,9 @@ func NewRegexGenerator(operator RegexOperator) *RegexGenerator {
 	}
 }
 
-func (this *RegexGenerator) isEscapeCharacter(c uint16) bool {
+func (generator *RegexGenerator) isEscapeCharacter(c uint16) bool {
 	if c < 128 {
-		return (this.escapeCharacters[c/64]>>(c%64))&1 == 1
+		return (generator.escapeCharacters[c/64]>>(c%64))&1 == 1
 	}
 	return false
 }
@@ -107,14 +113,15 @@ func _add(node *RegexNode, word []uint16, offset int) *RegexNode {
 	return thisNode
 }
 
-func (this *RegexGenerator) Add(word []uint16) {
+// Add は、RegexGeneratorに単語を追加する
+func (generator *RegexGenerator) Add(word []uint16) {
 	if len(word) == 0 {
 		return
 	}
-	this.root = _add(this.root, word, 0)
+	generator.root = _add(generator.root, word, 0)
 }
 
-func (this *RegexGenerator) generateStub(node *RegexNode) []uint16 {
+func (generator *RegexGenerator) generateStub(node *RegexNode) []uint16 {
 	var brother = 1
 	var haschild = 0
 	var buf []uint16
@@ -129,56 +136,56 @@ func (this *RegexGenerator) generateStub(node *RegexNode) []uint16 {
 	var nochild = brother - haschild
 
 	if brother > 1 && haschild > 0 {
-		buf = append(buf, this.operator.beginGroup...)
+		buf = append(buf, generator.operator.beginGroup...)
 	}
 
 	if nochild > 0 {
 		if nochild > 1 {
-			buf = append(buf, this.operator.beginClass...)
+			buf = append(buf, generator.operator.beginClass...)
 		}
 		for iter := node; iter != nil; iter = iter.next {
 			if iter.child == nil {
-				if this.isEscapeCharacter(iter.code) {
+				if generator.isEscapeCharacter(iter.code) {
 					buf = append(buf, 92)
 				}
 				buf = append(buf, iter.code)
 			}
 		}
 		if nochild > 1 {
-			buf = append(buf, this.operator.endClass...)
+			buf = append(buf, generator.operator.endClass...)
 		}
 	}
 
 	if haschild > 0 {
 		if nochild > 0 {
-			buf = append(buf, this.operator.or...)
+			buf = append(buf, generator.operator.or...)
 		}
 		for iter := node; iter != nil; iter = iter.next {
 			if iter.child != nil {
-				if this.isEscapeCharacter(iter.code) {
+				if generator.isEscapeCharacter(iter.code) {
 					buf = append(buf, 92)
 				}
 				buf = append(buf, iter.code)
-				if this.operator.newline != nil { // TODO: always true
-					buf = append(buf, this.operator.newline...)
+				if generator.operator.newline != nil { // TODO: always true
+					buf = append(buf, generator.operator.newline...)
 				}
-				buf = append(buf, this.generateStub(iter.child)...)
+				buf = append(buf, generator.generateStub(iter.child)...)
 				if haschild > 1 && iter.next != nil {
-					buf = append(buf, this.operator.or...)
+					buf = append(buf, generator.operator.or...)
 				}
 			}
 		}
 	}
 	if brother > 1 && haschild > 0 {
-		buf = append(buf, this.operator.endGroup...)
+		buf = append(buf, generator.operator.endGroup...)
 	}
 	return buf
 }
 
-func (this *RegexGenerator) Generate() []uint16 {
-	if this.root == nil {
+// Generate は、RegexGenertorに追加した単語から、正規表現を生成する
+func (generator *RegexGenerator) Generate() []uint16 {
+	if generator.root == nil {
 		return []uint16{}
-	} else {
-		return this.generateStub(this.root)
 	}
+	return generator.generateStub(generator.root)
 }

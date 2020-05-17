@@ -6,6 +6,7 @@ import (
 	"unicode/utf16"
 )
 
+// QueryAWord は、migemoクエリを処理する
 func QueryAWord(word string, dict *CompactDictionary, operator *RegexOperator) string {
 	var utf16word = utf16.Encode([]rune(word))
 	var generator = NewTernaryRegexGenerator(*operator)
@@ -40,6 +41,7 @@ func QueryAWord(word string, dict *CompactDictionary, operator *RegexOperator) s
 	return string([]rune(utf16.Decode(generator.Generate())))
 }
 
+// Query は、migemoクエリを処理する
 func Query(word string, dict *CompactDictionary, operator *RegexOperator) string {
 	if len(word) == 0 {
 		return ""

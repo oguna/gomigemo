@@ -8,6 +8,7 @@ import (
 	"unicode/utf16"
 )
 
+// BuildDictionaryFromMigemoDictFile は、ファイルからCompactDictionaryを読み込む
 func BuildDictionaryFromMigemoDictFile(fp io.Reader) *CompactDictionary {
 	scanner := bufio.NewScanner(fp)
 	dict := make(map[string][]string)

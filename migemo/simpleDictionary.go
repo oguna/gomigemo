@@ -5,26 +5,28 @@ import (
 	"strings"
 )
 
+// SimpleDictionary は、キーとバリューを配列にして格納した、単純な構造の辞書
 type SimpleDictionary struct {
 	keys   []string
 	values []string
 }
 
-type KeyValuePair struct {
+type keyValuePair struct {
 	key   string
 	value string
 }
 
+// BuildSimpleDictionary は、ファイルからSimpleDictionaryを生成する
 func BuildSimpleDictionary(file string) *SimpleDictionary {
 	var lines = strings.Split(file, "\n")
-	var keyValuePairs = []KeyValuePair{}
+	var keyValuePairs = []keyValuePair{}
 	for i := 0; i < len(lines); i++ {
 		var line = lines[i]
 		if !strings.HasPrefix(line, ";") && len(line) != 0 {
 			var semicolonPos = strings.Index(line, "\t")
 			var key = line[:semicolonPos]
 			var value = line[:semicolonPos+1]
-			keyValuePairs = append(keyValuePairs, KeyValuePair{
+			keyValuePairs = append(keyValuePairs, keyValuePair{
 				key:   key,
 				value: value,
 			})
@@ -62,23 +64,24 @@ func BuildSimpleDictionary(file string) *SimpleDictionary {
 	}
 }
 
-func (this *SimpleDictionary) PredictiveSearch(hiragana string) []string {
+// PredictiveSearch は、入力されたキーを接頭辞とする単語を返す
+func (dictioary *SimpleDictionary) PredictiveSearch(hiragana string) []string {
 	if len(hiragana) == 0 {
 		return []string{}
 	}
 	var hiraganaRune = []rune(hiragana)
 	var stop = string(append(hiraganaRune[:len(hiragana)-1], hiraganaRune[len(hiragana)-1]))
-	var startPos = binarySearchString(this.keys, 0, len(this.keys), hiragana)
+	var startPos = binarySearchString(dictioary.keys, 0, len(dictioary.keys), hiragana)
 	if startPos < 0 {
 		startPos = -(startPos + 1)
 	}
-	var endPos = binarySearchString(this.keys, 0, len(this.keys), stop)
+	var endPos = binarySearchString(dictioary.keys, 0, len(dictioary.keys), stop)
 	if endPos < 0 {
 		endPos = -(endPos + 1)
 	}
 	var result = []string{}
 	for i := startPos; i < endPos; i++ {
-		for _, j := range strings.Split(this.values[i], "\t") {
+		for _, j := range strings.Split(dictioary.values[i], "\t") {
 			result = append(result, j)
 		}
 	}

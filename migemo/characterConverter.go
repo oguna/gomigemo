@@ -346,6 +346,7 @@ var zen2han = map[rune]string{
 	'ポ': "ﾎﾟ",
 }
 
+// ConvertHan2Zen は、半角から全角へ文字列を変更する
 func ConvertHan2Zen(source string) string {
 	var sb = []rune{}
 	for _, c := range []rune(source) {
@@ -359,6 +360,7 @@ func ConvertHan2Zen(source string) string {
 	return string(sb)
 }
 
+// ConvertZen2Han は、全角から半角へ文字列を変更する
 func ConvertZen2Han(source string) string {
 	var sb = []rune{}
 	for _, c := range []rune(source) {
@@ -372,6 +374,7 @@ func ConvertZen2Han(source string) string {
 	return string(sb)
 }
 
+// ConvertHira2Kata は、ひらがなからカタカナへ文字列を変更する
 func ConvertHira2Kata(source string) string {
 	var sb = []rune(source)
 	for i, c := range sb {

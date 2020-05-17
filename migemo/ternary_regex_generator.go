@@ -1,5 +1,6 @@
 package migemo
 
+// TernaryRegexNode は、三分探索木で正規表現を生成するノード
 type TernaryRegexNode struct {
 	value uint16
 	child *TernaryRegexNode
@@ -8,16 +9,16 @@ type TernaryRegexNode struct {
 	level int
 }
 
-func (this *TernaryRegexNode) successor() *TernaryRegexNode {
-	t := this.right
+func (node *TernaryRegexNode) successor() *TernaryRegexNode {
+	t := node.right
 	for t.left != nil {
 		t = t.left
 	}
 	return t
 }
 
-func (this *TernaryRegexNode) predecessor() *TernaryRegexNode {
-	t := this.left
+func (node *TernaryRegexNode) predecessor() *TernaryRegexNode {
+	t := node.left
 	for t.left != nil {
 		t = t.left
 	}
@@ -27,6 +28,7 @@ func (this *TernaryRegexNode) predecessor() *TernaryRegexNode {
 	return t
 }
 
+// TernaryRegexGenerator は、三分探索木で正規表現を生成する
 type TernaryRegexGenerator struct {
 	root             *TernaryRegexNode
 	operator         RegexOperator
@@ -43,13 +45,14 @@ func initializeEscapeCharacters() [2]uint64 {
 	return bits
 }
 
-func (this *TernaryRegexGenerator) isEscapeCharacter(c uint16) bool {
+func (generator *TernaryRegexGenerator) isEscapeCharacter(c uint16) bool {
 	if c < 128 {
-		return (this.escapeCharacters[c/64]>>(c%64))&1 == 1
+		return (generator.escapeCharacters[c/64]>>(c%64))&1 == 1
 	}
 	return false
 }
 
+// NewTernaryRegexGenerator は、TernaryRegexGeneratorを初期化する
 func NewTernaryRegexGenerator(operator RegexOperator) *TernaryRegexGenerator {
 	return &TernaryRegexGenerator{
 		root:             nil,
@@ -112,11 +115,12 @@ func insert(x uint16, t *TernaryRegexNode) (*TernaryRegexNode, *TernaryRegexNode
 	return t, r, inserted
 }
 
-func (this *TernaryRegexGenerator) Add(word []uint16) {
+// Add は、単語を追加する
+func (generator *TernaryRegexGenerator) Add(word []uint16) {
 	if len(word) == 0 {
 		return
 	}
-	this.root = add(this.root, word, 0)
+	generator.root = add(generator.root, word, 0)
 }
 
 func add(node *TernaryRegexNode, word []uint16, offset int) *TernaryRegexNode {
@@ -126,9 +130,8 @@ func add(node *TernaryRegexNode, word []uint16, offset int) *TernaryRegexNode {
 			target.child = add(target.child, word, offset+1)
 		}
 		return node
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func traverseSiblings(node *TernaryRegexNode, f func(node *TernaryRegexNode)) {
@@ -139,7 +142,7 @@ func traverseSiblings(node *TernaryRegexNode, f func(node *TernaryRegexNode)) {
 	}
 }
 
-func (this *TernaryRegexGenerator) generate(node *TernaryRegexNode, buf *[]uint16) {
+func (generator *TernaryRegexGenerator) generate(node *TernaryRegexNode, buf *[]uint16) {
 	var brother = 0
 	var haschild = 0
 	traverseSiblings(node, func(node *TernaryRegexNode) {
@@ -151,43 +154,43 @@ func (this *TernaryRegexGenerator) generate(node *TernaryRegexNode, buf *[]uint1
 	var nochild = brother - haschild
 
 	if brother > 1 && haschild > 0 {
-		*buf = append(*buf, this.operator.beginGroup...)
+		*buf = append(*buf, generator.operator.beginGroup...)
 	}
 
 	if nochild > 0 {
 		if nochild > 1 {
-			*buf = append(*buf, this.operator.beginClass...)
+			*buf = append(*buf, generator.operator.beginClass...)
 		}
 		traverseSiblings(node, func(node *TernaryRegexNode) {
 			if node.child != nil {
 				return
 			}
-			if this.isEscapeCharacter(node.value) {
+			if generator.isEscapeCharacter(node.value) {
 				*buf = append(*buf, 92)
 			}
 			*buf = append(*buf, node.value)
 		})
 		if nochild > 1 {
-			*buf = append(*buf, this.operator.endClass...)
+			*buf = append(*buf, generator.operator.endClass...)
 		}
 	}
 
 	if haschild > 0 {
 		if nochild > 0 {
-			*buf = append(*buf, this.operator.or...)
+			*buf = append(*buf, generator.operator.or...)
 		}
 		traverseSiblings(node, func(node *TernaryRegexNode) {
 			if node.child != nil {
-				if this.isEscapeCharacter(node.value) {
+				if generator.isEscapeCharacter(node.value) {
 					*buf = append(*buf, 92)
 				}
 				*buf = append(*buf, node.value)
-				if this.operator.newline != nil { // TODO: always true
-					*buf = append(*buf, this.operator.newline...)
+				if generator.operator.newline != nil { // TODO: always true
+					*buf = append(*buf, generator.operator.newline...)
 				}
-				this.generate(node.child, buf)
+				generator.generate(node.child, buf)
 				if haschild > 1 {
-					*buf = append(*buf, this.operator.or...)
+					*buf = append(*buf, generator.operator.or...)
 				}
 			}
 		})
@@ -196,16 +199,16 @@ func (this *TernaryRegexGenerator) generate(node *TernaryRegexNode, buf *[]uint1
 		}
 	}
 	if brother > 1 && haschild > 0 {
-		*buf = append(*buf, this.operator.endGroup...)
+		*buf = append(*buf, generator.operator.endGroup...)
 	}
 }
 
-func (this *TernaryRegexGenerator) Generate() []uint16 {
-	if this.root == nil {
+// Generate は、追加した文字列から正規表現を生成する
+func (generator *TernaryRegexGenerator) Generate() []uint16 {
+	if generator.root == nil {
 		return []uint16{}
-	} else {
-		buffer := []uint16{}
-		this.generate(this.root, &buffer)
-		return buffer
 	}
+	buffer := []uint16{}
+	generator.generate(generator.root, &buffer)
+	return buffer
 }
