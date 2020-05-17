@@ -4,12 +4,14 @@ import (
 	"strings"
 )
 
+// RomajiProcessor2 は、DoubleArrayでローマ字を処理する構造体
 type RomajiProcessor2 struct {
 	trie         *DoubleArray
 	hiraganaList []string
 	remainList   []int8
 }
 
+// NewRomajiProcessor2 は、RomajiProcessor2を初期化する
 func NewRomajiProcessor2() *RomajiProcessor2 {
 	base := []int16{0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 26, 31, 95, -1, 100, 121, 147, -1, 175, 182, 203, 229, 251, -1, 266, 284, 291, 302, 334, -1, 379, 401, 420, 432, 464, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50, 49, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 28, -1, -1, -1, -1, 52, -1, -1, -1, -1, -1, -1, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 21, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 57, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 67, -1, -1, -1, -1, -1, -1, -1, 34, -1, -1, -1, -1, -1, -1, 76, -1, 93, -1, -1, -1, -1, 59, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 118, -1, 136, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 149, -1, 158, -1, 23, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 160, -1, -1, -1, -1, 177, -1, 201, -1, -1, -1, -1, -1, -1, 61, -1, -1, -1, -1, -1, -1, -1, -1, 44, -1, -1, 47, -1, 212, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 230, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 248, 86, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 269, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 317, -1, -1, -1, -1, -1, 293, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 319, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 343, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 360, -1, -1, -1, 361, -1, 362, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 384, -1, -1, -1, -1, 402, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 46, -1, 74, -1, -1, -1, -1, 85, -1, -1, -1, -1, -1, -1, -1, -1, 68, -1, -1, 83, -1, 427, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 445, -1}
 	check := []int16{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, 0, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 98, 98, 147, 0, 98, 99, 147, 99, 98, 99, 147, 100, 99, 99, 98, 171, 147, 270, 159, 99, 98, 322, 147, 135, 98, 99, 152, 135, 207, 99, 152, 135, 134, 221, 152, 310, 319, 135, 319, 310, 152, 199, 520, 135, 134, 199, 152, 221, 134, 199, 214, 183, 522, 221, 214, 199, 522, 539, 214, 527, 536, 199, 536, 527, 214, -1, -1, 216, 373, 100, 214, 216, 100, 100, 102, 216, 100, 100, 102, 102, 373, 216, 102, 100, 373, -1, -1, 216, 102, 100, -1, 100, 240, 100, 102, 103, 240, -1, 102, 103, 240, 103, -1, 103, -1, -1, 240, -1, -1, 103, 242, -1, 240, -1, 242, 103, -1, 103, 242, 103, -1, 104, -1, 266, 242, 104, -1, 266, 104, 104, 242, 266, 268, -1, 296, 104, 268, 266, 296, -1, 268, 104, 296, 104, -1, 104, 268, 266, 296, 106, -1, 301, 268, 106, 296, 301, 107, 106, 106, 301, 107, -1, -1, 106, 107, 301, 107, 110, -1, 106, 107, 301, -1, 106, -1, 303, 107, 108, 107, 303, 107, 108, -1, 303, -1, 108, 324, 108, 108, 303, 324, 108, -1, -1, 324, 303, 108, 108, -1, 108, 324, 108, -1, 109, 350, -1, 324, 109, 350, -1, -1, 109, 350, -1, -1, 109, -1, 109, 350, -1, -1, -1, 372, 109, 350, 110, 372, 109, -1, 110, 372, -1, -1, 110, -1, -1, 372, -1, 110, 110, 112, -1, 372, 387, 112, 110, -1, 387, 112, 110, 116, 387, -1, -1, 112, 112, -1, 387, 113, -1, 112, -1, 113, 387, 112, 114, 113, 412, -1, 114, -1, 412, 113, 114, 113, 412, 115, -1, 113, 114, 115, 412, 114, 115, 115, 114, -1, 412, -1, 114, 115, 406, -1, 423, 115, 406, 115, 423, -1, 406, 115, 423, -1, -1, -1, 406, -1, 423, 116, -1, -1, 406, 116, 423, -1, 116, 116, 438, -1, -1, -1, 438, 116, -1, -1, 438, 116, 116, 116, -1, 116, 438, 116, -1, 449, 453, 455, 438, 449, 453, 455, -1, 449, 453, 455, -1, -1, -1, 449, 453, 455, -1, -1, 118, 449, 453, 455, 118, 500, -1, -1, 118, 500, -1, -1, -1, 500, 118, -1, -1, -1, -1, 500, 118, 118, 119, 505, 118, 500, 119, 505, -1, 119, 119, 505, 122, 122, 122, 122, 119, 505, -1, -1, -1, 120, 119, 505, 119, 120, 119, -1, 541, 120, -1, 120, 541, 121, 120, 120, 541, 121, -1, -1, 120, 120, 541, 120, 120, 120, 585, 121, 541, -1, 585, -1, -1, 121, 585, -1, -1, 121, -1, 122, 585, 122, -1, -1, -1, 122, 585, -1, -1, 122, -1, -1, 122, 122, 122, 122, 122, -1, -1, 122, -1, -1, -1, -1, -1, 122, -1, -1, -1, 122, 122}
@@ -26,14 +28,15 @@ func NewRomajiProcessor2() *RomajiProcessor2 {
 	}
 }
 
-func (this *RomajiProcessor2) RomajiToHiragana(romaji string) string {
+// RomajiToHiragana は、入力した文字列romajiをひらがなに変換する
+func (processor *RomajiProcessor2) RomajiToHiragana(romaji string) string {
 	var builder strings.Builder
 	cursor := 0
 	for cursor < len(romaji) {
 		longestNode := int16(-1)
 		length := -1
-		this.trie.CommonPrefixSearch(romaji[cursor:], func(node int16) {
-			if this.remainList[node] != -1 {
+		processor.trie.CommonPrefixSearch(romaji[cursor:], func(node int16) {
+			if processor.remainList[node] != -1 {
 				longestNode = node
 			}
 			length++
@@ -42,30 +45,31 @@ func (this *RomajiProcessor2) RomajiToHiragana(romaji string) string {
 			builder.WriteByte(romaji[cursor])
 			cursor++
 		} else {
-			builder.WriteString(this.hiraganaList[longestNode])
-			cursor = cursor + length - int(this.remainList[longestNode])
+			builder.WriteString(processor.hiraganaList[longestNode])
+			cursor = cursor + length - int(processor.remainList[longestNode])
 		}
 	}
 	return builder.String()
 }
 
-func (this *RomajiProcessor2) RomajiToHiraganaPredictively(romaji string) *RomajiPredictiveResult {
+// RomajiToHiraganaPredictively は、入力途中の文字列から変換されるひらがなを予測し、ローマ字からひらがなに変換する
+func (processor *RomajiProcessor2) RomajiToHiraganaPredictively(romaji string) *RomajiPredictiveResult {
 	var builder strings.Builder
 	cursor := 0
 	for cursor < len(romaji) {
 		longestNode := int16(-1)
 		length := 0
-		this.trie.CommonPrefixSearch(romaji[cursor:], func(node int16) {
-			if this.remainList[node] != -1 {
+		processor.trie.CommonPrefixSearch(romaji[cursor:], func(node int16) {
+			if processor.remainList[node] != -1 {
 				longestNode = node
 			}
 			length++
 		})
 		if length+cursor-1 == len(romaji) {
 			set := make(map[string]struct{})
-			this.trie.PredictiveSearch(romaji[cursor:], func(node int16) {
-				if this.remainList[node] != -1 {
-					set[this.hiraganaList[node]] = struct{}{}
+			processor.trie.PredictiveSearch(romaji[cursor:], func(node int16) {
+				if processor.remainList[node] != -1 {
+					set[processor.hiraganaList[node]] = struct{}{}
 				}
 			})
 			list := make([]string, 0)
@@ -78,15 +82,14 @@ func (this *RomajiProcessor2) RomajiToHiraganaPredictively(romaji string) *Romaj
 					Prefix:   builder.String(),
 					Suffixes: []string{""},
 				}
-			} else {
-				return &RomajiPredictiveResult{
-					Prefix:   builder.String(),
-					Suffixes: list,
-				}
+			}
+			return &RomajiPredictiveResult{
+				Prefix:   builder.String(),
+				Suffixes: list,
 			}
 		} else if longestNode >= 0 {
-			builder.WriteString(this.hiraganaList[longestNode])
-			cursor = cursor + length - 1 - int(this.remainList[longestNode])
+			builder.WriteString(processor.hiraganaList[longestNode])
+			cursor = cursor + length - 1 - int(processor.remainList[longestNode])
 		} else {
 			builder.WriteByte(romaji[cursor])
 			cursor++

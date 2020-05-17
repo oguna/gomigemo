@@ -8,6 +8,7 @@ type DoubleArray struct {
 	charSize      int
 }
 
+// NewDoubleArray は、DoubleArrayを初期化する
 func NewDoubleArray(base []int16, check []int16, code func(uint8) int, charSize int) *DoubleArray {
 	return &DoubleArray{
 		base,
@@ -17,26 +18,26 @@ func NewDoubleArray(base []int16, check []int16, code func(uint8) int, charSize 
 	}
 }
 
-func (this *DoubleArray) traverse(n int16, k int) int16 {
-	m := this.base[n] + int16(k)
-	if this.check[m] == n {
+func (doubleArray *DoubleArray) traverse(n int16, k int) int16 {
+	m := doubleArray.base[n] + int16(k)
+	if doubleArray.check[m] == n {
 		return m
-	} else {
-		return -1
 	}
+	return -1
 }
 
-func (this *DoubleArray) Lookup(str string) int16 {
+// Lookup は、指定した文字列のノード番号を返す
+func (doubleArray *DoubleArray) Lookup(str string) int16 {
 	if len(str) == 0 {
 		return 0
 	}
 	n := int16(0)
 	for i := 0; i < len(str); i++ {
-		c := this.charConverter(str[i])
+		c := doubleArray.charConverter(str[i])
 		if c < 1 {
 			panic("")
 		}
-		n = this.traverse(n, c)
+		n = doubleArray.traverse(n, c)
 		if n == -1 {
 			return -1
 		}
@@ -44,7 +45,8 @@ func (this *DoubleArray) Lookup(str string) int16 {
 	return n
 }
 
-func (this *DoubleArray) CommonPrefixSearch(key string, f func(node int16)) {
+// CommonPrefixSearch は、指定した文字列のノードまでにたどる全てのノード番号を関数fに返す
+func (doubleArray *DoubleArray) CommonPrefixSearch(key string, f func(node int16)) {
 	index := int16(0)
 	offset := 0
 	for index != -1 {
@@ -52,32 +54,32 @@ func (this *DoubleArray) CommonPrefixSearch(key string, f func(node int16)) {
 		if offset == len(key) {
 			index = -1
 		} else {
-			c := this.charConverter(key[offset])
-			index = this.traverse(index, c)
+			c := doubleArray.charConverter(key[offset])
+			index = doubleArray.traverse(index, c)
 			offset++
 		}
 		f(lastIndex)
 	}
 }
 
-func (this *DoubleArray) PredictiveSearch(key string, f func(node int16)) {
-	n := this.Lookup(key)
+// PredictiveSearch は、接頭辞keyが含まれている全てのノードのノード番号を関数fに返す
+func (doubleArray *DoubleArray) PredictiveSearch(key string, f func(node int16)) {
+	n := doubleArray.Lookup(key)
 	if n == -1 {
 		return
-	} else {
-		this.visitRecursive(n, f)
 	}
+	doubleArray.visitRecursive(n, f)
 }
 
-func (this *DoubleArray) visitRecursive(n int16, f func(node int16)) {
+func (doubleArray *DoubleArray) visitRecursive(n int16, f func(node int16)) {
 	f(n)
-	for i := 0; i < this.charSize; i++ {
-		m := int(this.base[n]) + i + 1
-		if m >= len(this.check) {
+	for i := 0; i < doubleArray.charSize; i++ {
+		m := int(doubleArray.base[n]) + i + 1
+		if m >= len(doubleArray.check) {
 			return
 		}
-		if this.check[m] == n {
-			this.visitRecursive(int16(m), f)
+		if doubleArray.check[m] == n {
+			doubleArray.visitRecursive(int16(m), f)
 		}
 	}
 }

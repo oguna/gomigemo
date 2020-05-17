@@ -2,11 +2,13 @@ package migemo
 
 import "fmt"
 
+// BitList は、ビット配列を効率的に格納する伸長可能な構造体
 type BitList struct {
 	Words []uint64
 	Size  int
 }
 
+// NewBitList は、BitListを長さ=0で初期化する
 func NewBitList() *BitList {
 	return &BitList{
 		Words: make([]uint64, 0, 8),
@@ -14,6 +16,7 @@ func NewBitList() *BitList {
 	}
 }
 
+// NewBitListWithSize は、BitListを長さ=sizeで初期化する
 func NewBitListWithSize(size int) *BitList {
 	return &BitList{
 		Words: make([]uint64, (size+63)/64),
@@ -21,28 +24,31 @@ func NewBitListWithSize(size int) *BitList {
 	}
 }
 
-func (self *BitList) Add(value bool) {
-	if len(self.Words) < (self.Size+1+63)/64 {
-		self.Words = append(self.Words, 0)
+// Add は、ビットをリストの末尾に追加する
+func (bitList *BitList) Add(value bool) {
+	if len(bitList.Words) < (bitList.Size+1+63)/64 {
+		bitList.Words = append(bitList.Words, 0)
 	}
-	self.Set(self.Size, value)
-	self.Size++
+	bitList.Set(bitList.Size, value)
+	bitList.Size++
 }
 
-func (self *BitList) Set(pos int, value bool) {
-	if self.Size < pos {
-		panic(fmt.Sprintf("index out of range [%d] with length %d", pos, self.Size))
+// Set は、指定したposのビット値をvalueに設定する
+func (bitList *BitList) Set(pos int, value bool) {
+	if bitList.Size < pos {
+		panic(fmt.Sprintf("index out of range [%d] with length %d", pos, bitList.Size))
 	}
 	if value {
-		self.Words[pos/64] |= uint64(1) << (pos % 64)
+		bitList.Words[pos/64] |= uint64(1) << (pos % 64)
 	} else {
-		self.Words[pos/64] &= ^(uint64(1) << (pos % 64))
+		bitList.Words[pos/64] &= ^(uint64(1) << (pos % 64))
 	}
 }
 
-func (self *BitList) Get(pos int) bool {
-	if self.Size < pos {
-		panic(fmt.Sprintf("index out of range [%d] with length %d", pos, self.Size))
+// Get は、指定したposのビット値を取得する
+func (bitList *BitList) Get(pos int) bool {
+	if bitList.Size < pos {
+		panic(fmt.Sprintf("index out of range [%d] with length %d", pos, bitList.Size))
 	}
-	return (self.Words[pos/64]>>(pos%64))&1 == 1
+	return (bitList.Words[pos/64]>>(pos%64))&1 == 1
 }

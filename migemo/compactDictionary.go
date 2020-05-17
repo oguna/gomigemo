@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// CompactDictionary は、読み毎に複数の単語を格納した辞書
 type CompactDictionary struct {
 	keyTrie          *LoudsTrie
 	valueTrie        *LoudsTrie
@@ -15,10 +16,7 @@ type CompactDictionary struct {
 	hasMappingBitList *BitList
 }
 
-func (this *CompactDictionary) GetMappingBitVector() *BitVector {
-	return this.mappingBitVector
-}
-
+// NewCompactDictionary は、バイト配列からCompactDictionaryを読み込む
 func NewCompactDictionary(buffer []uint8) *CompactDictionary {
 	var offset = 0
 	keyTrie, offset := readTrie(buffer, offset, true)
@@ -111,17 +109,18 @@ func encode(c uint16) uint8 {
 	return 0
 }
 
-func (this *CompactDictionary) Search(key []uint16, f func([]uint16)) {
-	var keyIndex = this.keyTrie.Lookup(key)
+// Search は、キーに一致する単語をコールバック関数fに返す
+func (compactDictionary *CompactDictionary) Search(key []uint16, f func([]uint16)) {
+	var keyIndex = compactDictionary.keyTrie.Lookup(key)
 	if keyIndex != -1 {
-		var valueStartPos = this.mappingBitVector.Select(uint32(keyIndex), false)
-		var valueEndPos = this.mappingBitVector.NextClearBit(valueStartPos + 1)
+		var valueStartPos = compactDictionary.mappingBitVector.Select(uint32(keyIndex), false)
+		var valueEndPos = compactDictionary.mappingBitVector.NextClearBit(valueStartPos + 1)
 		var size = uint(valueEndPos - valueStartPos - 1)
 		if size > 0 {
-			var offset = this.mappingBitVector.Rank(valueStartPos, false)
+			var offset = compactDictionary.mappingBitVector.Rank(valueStartPos, false)
 			word := make([]uint16, 0, 16)
 			for i := uint(0); i < size; i++ {
-				this.valueTrie.ReverseLookup(this.mapping[valueStartPos-offset+i], &word)
+				compactDictionary.valueTrie.ReverseLookup(compactDictionary.mapping[valueStartPos-offset+i], &word)
 				f(word)
 				word = word[:0]
 			}
@@ -129,18 +128,19 @@ func (this *CompactDictionary) Search(key []uint16, f func([]uint16)) {
 	}
 }
 
-func (this *CompactDictionary) PredictiveSearch(key []uint16, f func([]uint16)) {
-	var keyIndex = this.keyTrie.Lookup(key)
+// PredictiveSearch は、接頭辞がkeyに一致する全ての単語をコールバック関数fに返す
+func (compactDictionary *CompactDictionary) PredictiveSearch(key []uint16, f func([]uint16)) {
+	var keyIndex = compactDictionary.keyTrie.Lookup(key)
 	word := make([]uint16, 0, 16)
 	if keyIndex > 1 {
-		this.keyTrie.PredictiveSearchBreadthFirst(keyIndex, func(i int) {
-			if this.hasMappingBitList.Get(i) {
-				var valueStartPos uint = this.mappingBitVector.Select(uint32(i), false)
-				var valueEndPos uint = this.mappingBitVector.NextClearBit(valueStartPos + 1)
+		compactDictionary.keyTrie.PredictiveSearchBreadthFirst(keyIndex, func(i int) {
+			if compactDictionary.hasMappingBitList.Get(i) {
+				var valueStartPos uint = compactDictionary.mappingBitVector.Select(uint32(i), false)
+				var valueEndPos uint = compactDictionary.mappingBitVector.NextClearBit(valueStartPos + 1)
 				var size = valueEndPos - valueStartPos - 1
-				var offset = this.mappingBitVector.Rank(valueStartPos, false)
+				var offset = compactDictionary.mappingBitVector.Rank(valueStartPos, false)
 				for j := uint(0); j < size; j++ {
-					this.valueTrie.ReverseLookup(this.mapping[valueStartPos-offset+j], &word)
+					compactDictionary.valueTrie.ReverseLookup(compactDictionary.mapping[valueStartPos-offset+j], &word)
 					f(word)
 					word = word[:0]
 				}
@@ -149,50 +149,51 @@ func (this *CompactDictionary) PredictiveSearch(key []uint16, f func([]uint16)) 
 	}
 }
 
-func (this *CompactDictionary) Save(fp *os.File) {
+// Save は、ファイルに辞書の内容を書き込む
+func (compactDictionary *CompactDictionary) Save(fp *os.File) {
 	writer := bufio.NewWriter(fp)
 	buffer := make([]byte, 8)
 	// output key trie
-	keyTriEdgesLength := uint32((len(this.keyTrie.edges)))
+	keyTriEdgesLength := uint32((len(compactDictionary.keyTrie.edges)))
 	binary.BigEndian.PutUint32(buffer, keyTriEdgesLength)
 	writer.Write(buffer[0:4])
-	for i := 0; i < len(this.keyTrie.edges); i++ {
-		buffer[0] = encode(this.keyTrie.edges[i])
+	for i := 0; i < len(compactDictionary.keyTrie.edges); i++ {
+		buffer[0] = encode(compactDictionary.keyTrie.edges[i])
 		writer.Write(buffer[:1])
 	}
-	binary.BigEndian.PutUint32(buffer, uint32(this.keyTrie.bitVector.Size()))
+	binary.BigEndian.PutUint32(buffer, uint32(compactDictionary.keyTrie.bitVector.Size()))
 	writer.Write(buffer[0:4])
-	keyTrieBitVectorWords := this.keyTrie.bitVector.words
+	keyTrieBitVectorWords := compactDictionary.keyTrie.bitVector.words
 	for i := 0; i < len(keyTrieBitVectorWords); i++ {
 		binary.BigEndian.PutUint64(buffer, keyTrieBitVectorWords[i])
 		writer.Write(buffer)
 	}
 	// output value trie
-	valueTriEdgesLength := uint32((len(this.valueTrie.edges)))
+	valueTriEdgesLength := uint32((len(compactDictionary.valueTrie.edges)))
 	binary.BigEndian.PutUint32(buffer, valueTriEdgesLength)
 	writer.Write(buffer[:4])
-	for i := 0; i < len(this.valueTrie.edges); i++ {
-		binary.BigEndian.PutUint16(buffer, this.valueTrie.edges[i])
+	for i := 0; i < len(compactDictionary.valueTrie.edges); i++ {
+		binary.BigEndian.PutUint16(buffer, compactDictionary.valueTrie.edges[i])
 		writer.Write(buffer[:2])
 	}
-	binary.BigEndian.PutUint32(buffer, uint32(this.valueTrie.bitVector.Size()))
+	binary.BigEndian.PutUint32(buffer, uint32(compactDictionary.valueTrie.bitVector.Size()))
 	writer.Write(buffer[0:4])
-	valueTrieBitVectorWords := this.valueTrie.bitVector.words
+	valueTrieBitVectorWords := compactDictionary.valueTrie.bitVector.words
 	for i := 0; i < len(valueTrieBitVectorWords); i++ {
 		binary.BigEndian.PutUint64(buffer, valueTrieBitVectorWords[i])
 		writer.Write(buffer)
 	}
 
 	// output mapping trie
-	binary.BigEndian.PutUint32(buffer, uint32(this.mappingBitVector.sizeInBits))
+	binary.BigEndian.PutUint32(buffer, uint32(compactDictionary.mappingBitVector.sizeInBits))
 	writer.Write(buffer[:4])
-	for _, w := range this.mappingBitVector.words {
+	for _, w := range compactDictionary.mappingBitVector.words {
 		binary.BigEndian.PutUint64(buffer, w)
 		writer.Write(buffer)
 	}
-	binary.BigEndian.PutUint32(buffer, uint32(len(this.mapping)))
+	binary.BigEndian.PutUint32(buffer, uint32(len(compactDictionary.mapping)))
 	writer.Write(buffer[:4])
-	for _, x := range this.mapping {
+	for _, x := range compactDictionary.mapping {
 		binary.BigEndian.PutUint32(buffer, x)
 		writer.Write(buffer[:4])
 	}
