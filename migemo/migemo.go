@@ -23,7 +23,7 @@ func QueryAWord(word string, dict *CompactDictionary, operator *RegexOperator) s
 	var han = ConvertZen2Han(word)
 	generator.Add(utf16.Encode([]rune(han)))
 
-	var romajiProcessor = NewRomajiProcessor()
+	var romajiProcessor = NewRomajiProcessor2()
 	var hiraganaResult = romajiProcessor.RomajiToHiraganaPredictively(lower)
 	for _, a := range hiraganaResult.Suffixes {
 		var hira = hiraganaResult.Prefix + a
