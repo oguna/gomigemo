@@ -1,7 +1,6 @@
 package migemo
 
 import (
-	"regexp"
 	"strings"
 	"unicode/utf16"
 )
@@ -55,7 +54,14 @@ func Query(word string, dict *CompactDictionary, operator *RegexOperator) string
 }
 
 func parseQuery(query string) []string {
-	// TODO: regexpの処理は遅いため、別の実装に置き換えるべき
-	var re = regexp.MustCompile("[^A-Z\\s]+|[A-Z]{2,}|([A-Z][^A-Z\\s]+)|([A-Z]\\s*$)")
-	return re.FindAllString(query, -1)
+	parser := NewMigemoParser(query)
+	words := make([]string, 0, 8)
+	for true {
+		w := parser.Next()
+		if w == "" {
+			break
+		}
+		words = append(words, w)
+	}
+	return words
 }
