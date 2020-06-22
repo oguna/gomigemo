@@ -27,14 +27,14 @@ func QueryAWord(word string, dict *CompactDictionary, operator *RegexOperator) s
 	for _, a := range hiraganaResult.Suffixes {
 		var hira = hiraganaResult.Prefix + a
 		var utf32hira = []rune(hira)
-		var utf16hira = utf16.Encode([]rune(hira))
+		var utf16hira = utf16.Encode(utf32hira)
 		generator.Add(utf32hira)
 		if dict != nil {
 			dict.PredictiveSearch(utf16hira, func(word []uint16) {
 				generator.Add(utf16.Decode(word))
 			})
 		}
-		var kata = ConvertHira2Kata(string([]rune(utf16.Decode(utf16hira))))
+		var kata = ConvertHira2Kata(string(utf32hira))
 		generator.Add([]rune(kata))
 		generator.Add([]rune(ConvertZen2Han(kata)))
 	}
