@@ -1,3 +1,3 @@
 module github.com/oguna/gomigemo
 
-go 1.14
+go 1.16
