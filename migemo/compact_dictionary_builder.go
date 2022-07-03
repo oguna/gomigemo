@@ -70,7 +70,7 @@ func BuildDictionaryFromMigemoDictFile(fp io.Reader) *CompactDictionary {
 	mappingIndex := 0
 	mappingBitList := NewBitList()
 	key := make([]uint16, 0, 16)
-	for i := 1; i <= keyTrie.Size(); i++ {
+	for i := 1; i <= keyTrie.Size()+1; i++ {
 		key = key[:0]
 		keyTrie.ReverseLookup(uint32(i), &key)
 		mappingBitList.Add(false)

@@ -1,6 +1,7 @@
 package migemo_test
 
 import (
+	"bytes"
 	"os"
 	"testing"
 	"unicode/utf16"
@@ -20,6 +21,19 @@ func TestLoadFromText(t *testing.T) {
 	})
 	if matches[1] != "大分県" || matches[0] != "大阪府" {
 		t.Errorf("expected:[大阪府 大分県] actual:%v", matches)
+	}
+}
+
+func TestLoadFromText2(t *testing.T) {
+	text := "けんさく\t検索"
+	buff := bytes.NewBufferString(text)
+	dict := migemo.BuildDictionaryFromMigemoDictFile(buff)
+	matches := make([]string, 0, 2)
+	dict.Search(utf16.Encode([]rune("けんさく")), func(word []uint16) {
+		matches = append(matches, string(utf16.Decode(word)))
+	})
+	if len(matches) == 0 || matches[0] != "検索" {
+		t.Errorf("expected:[検索] actual:%v", matches)
 	}
 }
 
