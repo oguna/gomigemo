@@ -1,6 +1,7 @@
 # gomigemo
 
 ![test](https://github.com/oguna/gomigemo/workflows/test/badge.svg)
+[![pkg.go.dev](https://pkg.go.dev/badge/github.com/oguna/gomigemo)](https://pkg.go.dev/github.com/oguna/gomigemo)
 
 ローマ字のまま日本語をインクリメンタル検索するためのツールであるMigemoを、Go言語で実装したものです。
 
