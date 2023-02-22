@@ -217,7 +217,7 @@ func (generator *TernaryRegexGenerator) generate(node *TernaryRegexNode, buf *[]
 			}
 		})
 		if haschild > 1 {
-			*buf = (*buf)[:len(*buf)-1]
+			*buf = (*buf)[:len(*buf)-len(generator.operator.or)]
 		}
 	}
 	if brother > 1 && haschild > 0 {
