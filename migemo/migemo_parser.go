@@ -71,7 +71,13 @@ func (parser *MigemoParser) Next() string {
 		return parser.Query[start:parser.Cursor]
 	} else {
 		// それ以外なら、空白に至るまで
-		nextChar := parser.Query[parser.Cursor+1]
+		nextChar := uint8(0)
+		if parser.Cursor+1 < len(parser.Query) {
+			nextChar = parser.Query[parser.Cursor+1]
+		} else {
+			parser.Cursor++
+			return parser.Query[start:parser.Cursor]
+		}
 		for nextChar != 0x20 {
 			parser.Cursor++
 			if parser.Cursor+1 < len(parser.Query) {
