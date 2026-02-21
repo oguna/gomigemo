@@ -22,7 +22,7 @@ func NewBitVector(words []uint64, sizeInBits uint32) *BitVector {
 	sb := make([]uint16, len(lb)*8)
 	var sum = 0
 	var sumInLb = 0
-	for i := 0; i < len(sb); i++ {
+	for i := range sb {
 		var bc = 0
 		if i < len(words) {
 			bc = bits.OnesCount64(words[i])

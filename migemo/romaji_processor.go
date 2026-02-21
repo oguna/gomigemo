@@ -360,7 +360,7 @@ func calculateIndex(roman string) uint32 {
 
 func _calculateIndex(roman string, start int, end int) uint32 {
 	var result uint32 = 0
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		index := i + start
 		var c uint8 = 0
 		if index < len(roman) && index < end {
@@ -424,7 +424,7 @@ func (processor *RomajiProcessor) RomajiToHiragana(romaji string) string {
 func (processor *RomajiProcessor) findRomanEntryPredicatively(roman string, offset int) []romanEntry {
 	var startIndex = 0
 	var endIndex = len(processor.indexes)
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		if len(roman) <= offset+i {
 			break
 		}

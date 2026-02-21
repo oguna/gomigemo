@@ -3,6 +3,7 @@ package migemo_test
 import (
 	"io"
 	"os"
+	"slices"
 	"testing"
 	"unicode/utf16"
 
@@ -25,10 +26,8 @@ func TestCompactDictionary_1(t *testing.T) {
 		list = append(list, string(utf16.Decode(s)))
 	}
 	dict.Search(utf16.Encode([]rune("とうきょうと")), fn)
-	for _, w := range list {
-		if w == "東京都" {
-			return
-		}
+	if slices.Contains(list, "東京都") {
+		return
 	}
 	t.Error()
 }
@@ -48,10 +47,8 @@ func TestCompactDictionary_2(t *testing.T) {
 		list = append(list, string(utf16.Decode(s)))
 	}
 	dict.PredictiveSearch(utf16.Encode([]rune("か")), fn)
-	for _, w := range list {
-		if w == "神奈川県" {
-			return
-		}
+	if slices.Contains(list, "神奈川県") {
+		return
 	}
 	t.Error()
 }

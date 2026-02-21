@@ -44,7 +44,7 @@ func TestCompactDictionaryBuilder_ExtractTail(t *testing.T) {
 	if len(tails) != len(expectedTails) {
 		t.Error()
 	}
-	for i := 0; i < len(tails); i++ {
+	for i := range tails {
 		if tails[i] != expectedTails[i] {
 			t.Fatalf("#%d expected:%d actual:%d", i, expectedTails[i], tails[i])
 		}

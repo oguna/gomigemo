@@ -121,7 +121,7 @@ func BuildLoudsTrie(keys [][]uint16) (*LoudsTrie, []uint32, error) {
 		}
 	}
 	var nodes = make([]uint32, len(keys))
-	for i := 0; i < len(nodes); i++ {
+	for i := range nodes {
 		nodes[i] = 1
 	}
 	var cursor = 0
@@ -133,7 +133,7 @@ func BuildLoudsTrie(keys [][]uint16) (*LoudsTrie, []uint32, error) {
 		var lastChar uint16 = 0
 		var lastParent uint32 = 0
 		var restKeys uint32 = 0
-		for i := 0; i < len(keys); i++ {
+		for i := range keys {
 			if len(keys[i]) < cursor {
 				continue
 			}

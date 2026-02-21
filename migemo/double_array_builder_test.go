@@ -8,16 +8,16 @@ import (
 
 func TestDoubleArrayBuilder_test1(t *testing.T) {
 	keys := []string{"ab", "ac", "b", "da"}
-	for i := 0; i < len(keys); i++ {
+	for i := range keys {
 		chars := []rune(keys[i])
-		for j := 0; j < len(chars); j++ {
+		for j := range chars {
 			chars[j] -= 'a' - 1
 		}
 		keys[i] = string(chars)
 	}
 	indices := []int16{5, 6, 2, 3}
 	trie := migemo.BuildDoubleArray(keys)
-	for i := 0; i < len(keys); i++ {
+	for i := range keys {
 		if trie.Lookup(keys[i]) != indices[i] {
 			t.Error()
 		}
@@ -30,7 +30,7 @@ func TestDoubleArrayBuilder_test1(t *testing.T) {
 func TestDoubleArrayBuilder_test2(t *testing.T) {
 	keys := []string{"ab", "ac", "b", "da"}
 	trie := migemo.BuildDoubleArray(keys)
-	for i := 0; i < len(keys); i++ {
+	for i := range keys {
 		if trie.Lookup(keys[i]) <= 0 {
 			t.Error()
 		}

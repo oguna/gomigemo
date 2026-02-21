@@ -10,7 +10,7 @@ import (
 func TestLoudsTrieBuilder_1(t *testing.T) {
 	words := []string{"baby", "bad", "bank", "box", "dad", "dance"}
 	keys := make([][]uint16, len(words))
-	for i := 0; i < len(words); i++ {
+	for i := range words {
 		keys[i] = utf16.Encode([]rune(words[i]))
 	}
 	trie, nodes, _ := migemo.BuildLoudsTrie(keys)
@@ -18,12 +18,12 @@ func TestLoudsTrieBuilder_1(t *testing.T) {
 		t.Error()
 	}
 	var expectedNodes = []uint32{13, 8, 14, 10, 11, 16}
-	for i := 0; i < len(nodes); i++ {
+	for i := range nodes {
 		if nodes[i] != expectedNodes[i] {
 			t.Error(words[i])
 		}
 	}
-	for i := 0; i < len(nodes); i++ {
+	for i := range nodes {
 		if uint32(trie.Lookup(keys[i])) != expectedNodes[i] {
 			t.Error(words[i])
 		}
@@ -33,7 +33,7 @@ func TestLoudsTrieBuilder_1(t *testing.T) {
 func TestLoudsTrieBuilder_2(t *testing.T) {
 	words := []string{"a", "aa", "ab", "bb"}
 	keys := make([][]uint16, len(words))
-	for i := 0; i < len(words); i++ {
+	for i := range words {
 		keys[i] = utf16.Encode([]rune(words[i]))
 	}
 	trie, nodes, err := migemo.BuildLoudsTrie(keys)
@@ -41,12 +41,12 @@ func TestLoudsTrieBuilder_2(t *testing.T) {
 		t.Error()
 	}
 	var expectedNodes = []uint32{2, 4, 5, 6}
-	for i := 0; i < len(nodes); i++ {
+	for i := range nodes {
 		if expectedNodes[i] != nodes[i] {
 			t.Error(words[i])
 		}
 	}
-	for i := 0; i < len(nodes); i++ {
+	for i := range nodes {
 		if uint32(trie.Lookup(keys[i])) != expectedNodes[i] {
 			t.Error(words[i])
 		}
@@ -65,7 +65,7 @@ func TestLoudsTrieBuilder_2(t *testing.T) {
 func TestLoudsTrieBuilder_NotSorted(t *testing.T) {
 	words := []string{"aa", "a"}
 	keys := make([][]uint16, len(words))
-	for i := 0; i < len(words); i++ {
+	for i := range words {
 		keys[i] = utf16.Encode([]rune(words[i]))
 	}
 	trie, nodes, err := migemo.BuildLoudsTrie(keys)

@@ -20,7 +20,7 @@ type keyValuePair struct {
 func BuildSimpleDictionary(file string) *SimpleDictionary {
 	var lines = strings.Split(file, "\n")
 	var keyValuePairs = []keyValuePair{}
-	for i := 0; i < len(lines); i++ {
+	for i := range lines {
 		var line = lines[i]
 		if !strings.HasPrefix(line, ";") && len(line) != 0 {
 			var semicolonPos = strings.Index(line, "\t")
@@ -81,7 +81,7 @@ func (dictioary *SimpleDictionary) PredictiveSearch(hiragana string) []string {
 	}
 	var result = []string{}
 	for i := startPos; i < endPos; i++ {
-		for _, j := range strings.Split(dictioary.values[i], "\t") {
+		for j := range strings.SplitSeq(dictioary.values[i], "\t") {
 			result = append(result, j)
 		}
 	}

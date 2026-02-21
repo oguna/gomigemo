@@ -22,11 +22,11 @@ func BuildDoubleArray(keys []string) *DoubleArray {
 // NewDoubleArrayBuilder は、DoubleArrayBuilderを初期化する
 func NewDoubleArrayBuilder(keys []string, indices []int16) *DoubleArrayBuilder {
 	base := make([]int16, 16)
-	for i := 0; i < len(base); i++ {
+	for i := range base {
 		base[i] = -1
 	}
 	check := make([]int16, 16)
-	for i := 0; i < len(check); i++ {
+	for i := range check {
 		check[i] = -1
 	}
 	return &DoubleArrayBuilder{
@@ -101,7 +101,7 @@ func (builder *DoubleArrayBuilder) traverse(index int16, start int, end int, off
 func (builder *DoubleArrayBuilder) ensureDoubleArray(a int16) {
 	if int16(len(builder.base)) <= a {
 		count := int(a) - len(builder.base) + 1
-		for i := 0; i < count; i++ {
+		for range count {
 			builder.base = append(builder.base, -1)
 			builder.check = append(builder.check, -1)
 		}

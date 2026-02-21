@@ -3,6 +3,7 @@ package migemo
 import (
 	"bufio"
 	"io"
+	"slices"
 	"sort"
 	"strings"
 	"unicode/utf16"
@@ -40,7 +41,7 @@ func BuildDictionaryFromMigemoDictFile(fp io.Reader) *CompactDictionary {
 	}
 
 	// build key trie
-	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+	slices.Sort(keys)
 	keysUtf16 := make([][]uint16, len(keys))
 	for i := 0; i < len(keys); i++ {
 		keysUtf16[i] = utf16.Encode([]rune(keys[i]))
@@ -76,7 +77,7 @@ func BuildDictionaryFromMigemoDictFile(fp io.Reader) *CompactDictionary {
 		mappingBitList.Add(false)
 		values, ok := dict[string(utf16.Decode(key))]
 		if ok {
-			for j := 0; j < len(values); j++ {
+			for j := range values {
 				mappingBitList.Add(true)
 				mapping[mappingIndex] = uint32(valueTrie.Lookup(utf16.Encode([]rune(values[j]))))
 				mappingIndex++
@@ -97,7 +98,7 @@ func BuildDictionaryFromMigemoDictFile(fp io.Reader) *CompactDictionary {
 // ExtractTail は、文字列の配列から分岐のない末尾(TAIL)を抽出する
 func ExtractTail(words []string) []uint32 {
 	tails := make([]uint32, len(words))
-	for i := 0; i < len(words); i++ {
+	for i := range words {
 		prevWord := []rune{}
 		if i != 0 {
 			prevWord = []rune(words[i-1])

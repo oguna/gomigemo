@@ -14,7 +14,7 @@ func TestLoudsTrie_PredictiveSearchDepthFirst(t *testing.T) {
 	bitVector := migemo.NewBitVector(bitVectorWords, bitVectorSize)
 	edgeString := "  bdaoabdnxdnykce"
 	edges := make([]uint16, 17)
-	for i := 0; i < 17; i++ {
+	for i := range 17 {
 		edges[i] = uint16(edgeString[i])
 	}
 	trie := migemo.NewLoudsTrie(bitVector, edges)
@@ -29,7 +29,7 @@ func TestLoudsTrie_PredictiveSearchDepthFirst(t *testing.T) {
 	if len(expectedNodes) != len(nodes) {
 		t.Errorf("invalid size. expected:%d actual:%d", len(expectedNodes), len(nodes))
 	}
-	for i := 0; i < len(expectedNodes); i++ {
+	for i := range expectedNodes {
 		if expectedNodes[i] != nodes[i] {
 			t.Errorf("expected:%d actual:%d", expectedNodes[i], nodes[i])
 		}
@@ -46,7 +46,7 @@ func TestLoudsTrie_PredictiveSearchBreadthFirst(t *testing.T) {
 	bitVector := migemo.NewBitVector(bitVectorWords, bitVectorSize)
 	edgeString := "  bdaoabdnxdnykce"
 	edges := make([]uint16, 17)
-	for i := 0; i < 17; i++ {
+	for i := range 17 {
 		edges[i] = uint16(edgeString[i])
 	}
 	trie := migemo.NewLoudsTrie(bitVector, edges)
@@ -58,7 +58,7 @@ func TestLoudsTrie_PredictiveSearchBreadthFirst(t *testing.T) {
 	if len(expectedList) != len(list) {
 		t.Errorf("invalid size. expected:%d actual:%d", len(expectedList), len(list))
 	}
-	for i := 0; i < len(expectedList); i++ {
+	for i := range expectedList {
 		if expectedList[i] != list[i] {
 			t.Errorf("expected:%d actual:%d", expectedList[i], list[i])
 		}

@@ -9,7 +9,7 @@ import (
 
 func bits_to_vector(bits []bool) []uint64 {
 	vec := make([]uint64, (len(bits)+63)/64)
-	for i := 0; i < len(bits); i++ {
+	for i := range bits {
 		if bits[i] {
 			vec[i/64] |= uint64(1) << (i % 64)
 		}
@@ -19,7 +19,7 @@ func bits_to_vector(bits []bool) []uint64 {
 
 func rank(bits []bool, position uint, b bool) uint {
 	count := uint(0)
-	for i := uint(0); i < position; i++ {
+	for i := range position {
 		if bits[i] == b {
 			count++
 		}
@@ -30,19 +30,19 @@ func rank(bits []bool, position uint, b bool) uint {
 func TestRank(t *testing.T) {
 	size := uint(1000)
 	bits := make([]bool, size)
-	for i := uint(0); i < size; i++ {
+	for i := range size {
 		bits[i] = rand.Intn(2) == 1
 	}
 	vec := bits_to_vector(bits)
 	bv := migemo.NewBitVector(vec, uint32(size))
-	for i := uint(0); i < size; i++ {
+	for i := range size {
 		expected := rank(bits, i, true)
 		actual := bv.Rank(i, true)
 		if expected != uint(actual) {
 			t.Error("actual: ", actual, "\nexpected: ", expected, "\n")
 		}
 	}
-	for i := uint(0); i < size; i++ {
+	for i := range size {
 		expected := rank(bits, i, false)
 		actual := bv.Rank(i, false)
 		if expected != uint(actual) {
@@ -52,7 +52,7 @@ func TestRank(t *testing.T) {
 }
 
 func _select(bits []bool, count uint, b bool) int {
-	for i := 0; i < len(bits); i++ {
+	for i := range bits {
 		if bits[i] == b {
 			count--
 		}
@@ -66,13 +66,13 @@ func _select(bits []bool, count uint, b bool) int {
 func TestSelect(t *testing.T) {
 	size := uint(1000)
 	bits := make([]bool, size)
-	for i := uint(0); i < size; i++ {
+	for i := range size {
 		bits[i] = rand.Intn(2) == 1
 	}
 	vec := bits_to_vector(bits)
 	bv := migemo.NewBitVector(vec, uint32(size))
 	count1 := uint(0)
-	for i := 0; i < len(bits); i++ {
+	for i := range bits {
 		if bits[i] {
 			count1++
 		}
@@ -97,7 +97,7 @@ func TestSelect(t *testing.T) {
 func TestNextClearBit(t *testing.T) {
 	size := uint(100)
 	bits := make([]bool, size)
-	for i := uint(0); i < size; i++ {
+	for i := range size {
 		bits[i] = true // rand.Intn(2) == 1
 	}
 	bits[50] = false

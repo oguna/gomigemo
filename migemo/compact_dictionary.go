@@ -24,7 +24,7 @@ func NewCompactDictionary(buffer []uint8) *CompactDictionary {
 	var mappingBitVectorSize = binary.BigEndian.Uint32(buffer[offset:])
 	offset = offset + 4
 	var mappingBitVectorWords = make([]uint64, (mappingBitVectorSize+63)/64)
-	for i := 0; i < len(mappingBitVectorWords); i++ {
+	for i := range mappingBitVectorWords {
 		mappingBitVectorWords[i] = binary.BigEndian.Uint64(buffer[offset:])
 		offset = offset + 8
 	}
@@ -32,7 +32,7 @@ func NewCompactDictionary(buffer []uint8) *CompactDictionary {
 	var mappingSize = binary.BigEndian.Uint32(buffer[offset:])
 	offset = offset + 4
 	mapping := make([]uint32, mappingSize)
-	for i := uint32(0); i < mappingSize; i++ {
+	for i := range mappingSize {
 		mapping[i] = binary.BigEndian.Uint32(buffer[offset:])
 		offset += 4
 	}
@@ -65,7 +65,7 @@ func readTrie(buffer []uint8, offset int, compactHiragana bool) (*LoudsTrie, int
 	var keyTrieEdgeSize = binary.BigEndian.Uint32(buffer[offset:])
 	offset = offset + 4
 	var keyTrieEdges = make([]uint16, keyTrieEdgeSize)
-	for i := uint32(0); i < keyTrieEdgeSize; i++ {
+	for i := range keyTrieEdgeSize {
 		var c uint16
 		if compactHiragana {
 			c = decode(buffer[offset])
@@ -79,7 +79,7 @@ func readTrie(buffer []uint8, offset int, compactHiragana bool) (*LoudsTrie, int
 	var keyTrieBitVectorSize = binary.BigEndian.Uint32(buffer[offset:])
 	offset = offset + 4
 	var keyTrieBitVectorWords = make([]uint64, (keyTrieBitVectorSize+63)/64)
-	for i := 0; i < len(keyTrieBitVectorWords); i++ {
+	for i := range keyTrieBitVectorWords {
 		keyTrieBitVectorWords[i] = binary.BigEndian.Uint64(buffer[offset:])
 		offset = offset + 8
 	}
@@ -119,7 +119,7 @@ func (compactDictionary *CompactDictionary) Search(key []uint16, f func([]uint16
 		if size > 0 {
 			var offset = compactDictionary.mappingBitVector.Rank(valueStartPos, false)
 			word := make([]uint16, 0, 16)
-			for i := uint(0); i < size; i++ {
+			for i := range size {
 				compactDictionary.valueTrie.ReverseLookup(compactDictionary.mapping[valueStartPos-offset+i], &word)
 				f(word)
 				word = word[:0]
@@ -139,7 +139,7 @@ func (compactDictionary *CompactDictionary) PredictiveSearch(key []uint16, f fun
 				var valueEndPos uint = compactDictionary.mappingBitVector.NextClearBit(valueStartPos + 1)
 				var size = valueEndPos - valueStartPos - 1
 				var offset = compactDictionary.mappingBitVector.Rank(valueStartPos, false)
-				for j := uint(0); j < size; j++ {
+				for j := range size {
 					compactDictionary.valueTrie.ReverseLookup(compactDictionary.mapping[valueStartPos-offset+j], &word)
 					f(word)
 					word = word[:0]
@@ -164,7 +164,7 @@ func (compactDictionary *CompactDictionary) Save(fp *os.File) {
 	binary.BigEndian.PutUint32(buffer, uint32(compactDictionary.keyTrie.bitVector.Size()))
 	writer.Write(buffer[0:4])
 	keyTrieBitVectorWords := compactDictionary.keyTrie.bitVector.words
-	for i := 0; i < len(keyTrieBitVectorWords); i++ {
+	for i := range keyTrieBitVectorWords {
 		binary.BigEndian.PutUint64(buffer, keyTrieBitVectorWords[i])
 		writer.Write(buffer)
 	}
@@ -179,7 +179,7 @@ func (compactDictionary *CompactDictionary) Save(fp *os.File) {
 	binary.BigEndian.PutUint32(buffer, uint32(compactDictionary.valueTrie.bitVector.Size()))
 	writer.Write(buffer[0:4])
 	valueTrieBitVectorWords := compactDictionary.valueTrie.bitVector.words
-	for i := 0; i < len(valueTrieBitVectorWords); i++ {
+	for i := range valueTrieBitVectorWords {
 		binary.BigEndian.PutUint64(buffer, valueTrieBitVectorWords[i])
 		writer.Write(buffer)
 	}
