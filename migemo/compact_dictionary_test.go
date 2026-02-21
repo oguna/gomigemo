@@ -1,8 +1,7 @@
 package migemo_test
 
 import (
-	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 	"unicode/utf16"
@@ -13,10 +12,13 @@ import (
 func TestCompactDictionary_1(t *testing.T) {
 	f, err := os.Open("../testdata/todofuken-dict")
 	if err != nil {
-		fmt.Println(err)
+		t.Fatalf("failed to open dict: %v", err)
 	}
 	defer f.Close()
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll(f)
+	if err != nil {
+		t.Fatalf("failed to read dict: %v", err)
+	}
 	dict := migemo.NewCompactDictionary(buf)
 	list := []string{}
 	fn := func(s []uint16) {
@@ -33,10 +35,13 @@ func TestCompactDictionary_1(t *testing.T) {
 func TestCompactDictionary_2(t *testing.T) {
 	f, err := os.Open("../testdata/todofuken-dict")
 	if err != nil {
-		fmt.Println(err)
+		t.Fatalf("failed to open dict: %v", err)
 	}
 	defer f.Close()
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll(f)
+	if err != nil {
+		t.Fatalf("failed to read dict: %v", err)
+	}
 	dict := migemo.NewCompactDictionary(buf)
 	list := []string{}
 	fn := func(s []uint16) {

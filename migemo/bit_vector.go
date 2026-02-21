@@ -172,7 +172,7 @@ func (bitVector *BitVector) NextClearBit(fromIndex uint) uint {
 		return fromIndex
 	}
 	var word uint64 = ^bitVector.words[u] & uint64(^uint64(0)<<(fromIndex&63))
-	for true {
+	for {
 		if word != 0 {
 			return uint(u*64) + uint(bits.TrailingZeros64(word))
 		}

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/oguna/gomigemo/migemo"
@@ -44,10 +44,15 @@ func main() {
 
 	f, err := os.Open(*d)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 	defer f.Close()
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll(f)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 	dict := migemo.NewCompactDictionary(buf)
 
 	if len(*w) == 0 {
@@ -68,6 +73,10 @@ func main() {
 			if !*q {
 				fmt.Print("QUERY: ")
 			}
+		}
+		if err := stdin.Err(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 	} else {
 		r := migemo.Query(*w, dict, regex_operator)

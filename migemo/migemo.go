@@ -57,7 +57,7 @@ func Query(word string, dict *CompactDictionary, operator *RegexOperator) string
 func parseQuery(query string) []string {
 	parser := NewMigemoParser(query)
 	words := make([]string, 0, 8)
-	for true {
+	for {
 		w := parser.Next()
 		if w == "" {
 			break

@@ -129,7 +129,7 @@ func BuildLoudsTrie(keys [][]uint16) (*LoudsTrie, []uint32, error) {
 	var edges = []uint16{0x20, 0x20}
 	var louds = NewBitList()
 	louds.Add(true)
-	for true {
+	for {
 		var lastChar uint16 = 0
 		var lastParent uint32 = 0
 		var restKeys uint32 = 0

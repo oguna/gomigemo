@@ -59,7 +59,7 @@ func (builder *DoubleArrayBuilder) traverse(index int16, start int, end int, off
 
 	// find children offset
 	childrenOffset := int16(0)
-	for true {
+	for {
 		conflict := false
 		for i := 0; i < len(childrenChars); i++ {
 			a := childrenOffset + int16(childrenChars[i])

@@ -108,7 +108,7 @@ func ExtractTail(words []string) []uint32 {
 			nextWord = []rune(words[i+1])
 		}
 		cursor := 0
-		for true {
+		for {
 			prevChar := rune(0)
 			currentChar := rune(0)
 			nextChar := rune(0)
