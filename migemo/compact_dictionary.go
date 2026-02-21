@@ -87,16 +87,25 @@ func readTrie(buffer []uint8, offset int, compactHiragana bool) (*LoudsTrie, int
 }
 
 func decode(c uint8) uint16 {
+	if c == 0x00 {
+		return 0
+	}
 	if 0x20 <= c && c <= 0x7e {
 		return uint16(c)
 	}
 	if 0xa1 <= c && c <= 0xf6 {
 		return uint16(c) + 0x3040 - 0xa0
 	}
+	if c == 0xf7 {
+		return 0x30fc
+	}
 	return 0
 }
 
 func encode(c uint16) uint8 {
+	if c == 0x0000 {
+		return 0
+	}
 	if 0x20 <= c && c <= 0x7e {
 		return uint8(c)
 	}
@@ -104,7 +113,7 @@ func encode(c uint16) uint8 {
 		return uint8(c - 0x3040 + 0xa0)
 	}
 	if 0x30fc == c {
-		return uint8(c - 0x3040 + 0xa0)
+		return 0xf7
 	}
 	return 0
 }
